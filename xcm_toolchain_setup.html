@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XCentium AI Toolchain Setup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a18; padding: 2rem; }
+  .wrap { max-width: 740px; margin: 0 auto; }
+  h1 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888780; margin-bottom: 28px; }
+
+  .section { margin-bottom: 2.5rem; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 0.5px solid #e8e6de; }
+  .tag { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 20px; }
+  .tag-purple { background: #EEEDFE; color: #3C3489; border: 0.5px solid #AFA9EC; }
+  .tag-coral  { background: #FAECE7; color: #712B13; border: 0.5px solid #F0997B; }
+  .tag-teal   { background: #E1F5EE; color: #085041; border: 0.5px solid #5DCAA5; }
+  .h2 { font-size: 15px; font-weight: 500; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 0.5px solid #d3d1c7; cursor: pointer; background: #f1efe8; color: #5f5e5a; user-select: none; transition: background 0.1s; }
+  .tab.active { background: #fff; color: #1a1a18; border-color: #b4b2a9; font-weight: 500; }
+  .tab:hover:not(.active) { background: #e8e6de; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .step { background: #fff; border: 0.5px solid #e8e6de; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+  .step-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .step-num { font-size: 10px; font-weight: 500; color: #888780; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
+  .step-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+  .step-body { font-size: 12px; color: #5f5e5a; line-height: 1.7; }
+  .step-body strong { color: #1a1a18; font-weight: 500; }
+
+  code { font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace; font-size: 11px; background: #f1efe8; padding: 1px 5px; border-radius: 4px; color: #1a1a18; }
+  .code { background: #f1efe8; border: 0.5px solid #d3d1c7; border-radius: 6px; font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace; font-size: 11px; padding: 10px 14px; margin: 8px 0; white-space: pre; overflow-x: auto; line-height: 1.7; color: #1a1a18; }
+  .cm  { color: #888780; }
+  .ph  { color: #633806; font-style: italic; }
+
+  .note { font-size: 11px; color: #5f5e5a; background: #f9f9f7; border-left: 2px solid #d3d1c7; padding: 6px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; }
+  .warn { font-size: 11px; color: #633806; background: #FAEEDA; border-left: 2px solid #EF9F27; padding: 6px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; }
+  .tip  { font-size: 11px; color: #085041; background: #E1F5EE; border-left: 2px solid #5DCAA5; padding: 6px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; }
+
+  .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; vertical-align: middle; margin-left: 4px; }
+  .badge-ok { background: #E1F5EE; color: #085041; border: 0.5px solid #5DCAA5; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+  .mini-card { background: #f1efe8; border: 0.5px solid #d3d1c7; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #5f5e5a; line-height: 1.5; }
+  .mini-card strong { display: block; font-size: 10px; font-weight: 500; color: #888780; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+
+  .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 10px 0 16px; }
+  .platform-btn { padding: 8px 10px; border-radius: 8px; border: 0.5px solid #d3d1c7; background: #f1efe8; cursor: pointer; font-size: 11px; font-weight: 500; color: #5f5e5a; text-align: center; user-select: none; transition: all 0.1s; }
+  .platform-btn:hover { background: #e8e6de; color: #1a1a18; }
+  .platform-btn.active { background: #fff; color: #1a1a18; border-color: #b4b2a9; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .platform-block { display: none; }
+  .platform-block.active { display: block; }
+  .section-label { font-size: 10px; font-weight: 500; color: #888780; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>XCentium AI Toolchain Setup</h1>
+<p class="subtitle">Figma MCP · Claude Code · Cursor — Platform-agnostic · March 2026</p>
+
+
+<!-- ═══ 01 FIGMA MCP ═══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="tag tag-purple">01</span>
+    <span class="h2">Figma MCP Setup</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('figma','remote',this)">Remote MCP <span class="badge badge-ok">recommended</span></div>
+    <div class="tab" onclick="switchTab('figma','desktop',this)">Desktop MCP</div>
+    <div class="tab" onclick="switchTab('figma','console',this)">Figma Console MCP</div>
+  </div>
+
+  <div id="figma-remote" class="panel active">
+    <div class="step">
+      <div class="step-top"><span class="step-title">Prerequisites</span><span class="step-num">Before you start</span></div>
+      <div class="step-body">
+        Requires a Figma account with a <strong>Dev, Professional, Org, or Enterprise seat</strong>. Supported clients: Claude Code CLI or Cursor.
+        <div class="warn">Free Starter / Viewer seats are limited to 6 remote MCP tool calls per month. Upgrade to at least a Professional Dev seat for real workflow use.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Add remote server in Claude Code</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Run in terminal (Claude Code CLI must already be installed):
+        <div class="code">claude mcp add --transport http figma-remote-mcp https://mcp.figma.com/mcp</div>
+        Restart Claude Code. Run <code>/mcp</code> — the <code>figma-remote-mcp</code> server shows as <em>disconnected</em> until authenticated.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Authenticate with Figma</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        Inside Claude Code, run <code>/mcp</code>, select the Figma server, choose <strong>Authenticate</strong>. Browser opens — log in to Figma and click <strong>Allow access</strong>. Run <code>/mcp</code> again to confirm status shows <strong>connected</strong>.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Add remote server in Cursor</span><span class="step-num">Step 3 — if using Cursor</span></div>
+      <div class="step-body">
+        <strong>Option A — plugin (easiest):</strong> In Cursor's agent chat, type <code>@figma</code>. Cursor prompts you to install the Figma plugin which bundles MCP + Agent Skills.<br><br>
+        <strong>Option B — manual:</strong> Cursor Settings → MCP tab → Add new global MCP server:
+        <div class="code">{
+  "mcpServers": {
+    "figma": { "url": "https://mcp.figma.com/mcp" }
+  }
+}</div>
+        <div class="note">The plugin option also installs Agent Skills — guidance for implementing designs, Code Connect, and design system rules. Prefer it over manual config.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Verify</span><span class="step-num">Confirm it works</span></div>
+      <div class="step-body">
+        Copy a Figma frame link (right-click any frame → Copy link). In Claude Code or Cursor, prompt:
+        <div class="code">Implement the component at this Figma URL as a React component:
+https://figma.com/design/ABC123/...?node-id=X-Y</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="figma-desktop" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">Enable desktop MCP in Figma</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Install / update the <strong>Figma Desktop app</strong> (web version does not support this). Open any Design file, then:
+        <div class="code">Figma menu (top-left) → Preferences → Enable Dev Mode MCP Server</div>
+        A toast confirms the server is running at <code>http://127.0.0.1:3845/mcp</code>. The server only runs while Figma Desktop is open.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Connect Claude Code</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        <div class="code">claude mcp add --transport http figma-desktop http://127.0.0.1:3845/mcp</div>
+        Restart Claude Code, run <code>/mcp</code> to confirm connection.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Connect Cursor</span><span class="step-num">Step 3 — if using Cursor</span></div>
+      <div class="step-body">
+        Cursor Settings → MCP tab → Add Custom MCP:
+        <div class="code">{
+  "mcpServers": {
+    "figma-desktop": { "url": "http://127.0.0.1:3845/mcp" }
+  }
+}</div>
+        <div class="note">Desktop MCP is selection-based — whatever frame or layer you have selected in Figma is what the agent sees. Best for real-time, component-by-component work. Remote MCP uses links and is better for async / handoff workflows.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="figma-console" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">What is Figma Console MCP?</span><span class="step-num">Context</span></div>
+      <div class="step-body">
+        A community-built MCP server providing <strong>write-access</strong> tools — create nodes, update properties, run plugin code, read console logs. Complements the official Figma MCP (which is read-optimised). Used in the XCentium workflow during the <strong>Design phase</strong> for AI-assisted Figma authoring.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Install Figma Console MCP</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Add to <code>~/.claude/settings.json</code>:
+        <div class="code">{
+  "mcpServers": {
+    "figma-console-mcp": {
+      "command": "npx",
+      "args": ["figma-console-mcp"]
+    }
+  }
+}</div>
+        Or via terminal: <code>claude mcp add figma-console-mcp -- npx figma-console-mcp</code>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Configure Figma access token</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        Figma → Settings → Security → Personal Access Tokens → Generate (File content: Read+Write, Code content: Read).
+        <div class="code">export FIGMA_ACCESS_TOKEN="figd_your_token_here"</div>
+        Add to <code>~/.zshrc</code> or <code>~/.bashrc</code> to persist.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ 02 CLAUDE CODE ═══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="tag tag-coral">02</span>
+    <span class="h2">Claude Code — CLI + Desktop App</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('cc','cli',this)">CLI (native) <span class="badge badge-ok">recommended</span></div>
+    <div class="tab" onclick="switchTab('cc','desktop',this)">Desktop App</div>
+    <div class="tab" onclick="switchTab('cc','auth',this)">Auth &amp; Account</div>
+  </div>
+
+  <div id="cc-cli" class="panel active">
+    <div class="step">
+      <div class="step-top"><span class="step-title">System requirements</span><span class="step-num">Before you start</span></div>
+      <div class="step-body">
+        <div class="row2">
+          <div class="mini-card"><strong>OS</strong>macOS 10.15+, Ubuntu 20.04+, Windows 10+ (WSL2 or Git for Windows)</div>
+          <div class="mini-card"><strong>RAM</strong>4 GB minimum recommended</div>
+          <div class="mini-card"><strong>Shell</strong>Bash or Zsh (best), PowerShell, Git Bash</div>
+          <div class="mini-card"><strong>Node.js</strong>Not required for native installer</div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Install — macOS / Linux</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        <div class="code">curl -fsSL https://claude.ai/install.sh | bash</div>
+        Open a new terminal window after installation (shell needs to pick up new PATH entry), then verify:
+        <div class="code">claude --version</div>
+        Native installer auto-updates in the background — no manual updates needed.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Install — Windows</span><span class="step-num">Step 1 (alt)</span></div>
+      <div class="step-body">
+        <strong>Option A — Native (PowerShell, not as Administrator):</strong>
+        <div class="code">Invoke-WebRequest -Uri https://claude.ai/install.ps1 -OutFile install.ps1; .\install.ps1</div>
+        <strong>Option B — WSL2 (recommended for full workflow):</strong>
+        <div class="code">wsl --install -d Ubuntu
+# inside Ubuntu terminal:
+curl -fsSL https://claude.ai/install.sh | bash</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">First launch &amp; login</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        Navigate into your project directory, then:
+        <div class="code">claude</div>
+        On first run, Claude Code opens a browser window for authentication. Log in with your Anthropic account. After auth you're in the interactive agent prompt.
+        <div class="code">/doctor   # checks config, permissions, connectivity
+/mcp      # shows connected MCP servers
+/help     # all commands</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Add Figma MCP</span><span class="step-num">Step 3</span></div>
+      <div class="step-body">
+        After Claude Code is installed — full steps in Section 01 above.
+        <div class="code">claude mcp add --transport http figma-remote-mcp https://mcp.figma.com/mcp</div>
+        Confirm with <code>/mcp</code> that it shows connected.
+      </div>
+    </div>
+  </div>
+
+  <div id="cc-desktop" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">What is the Desktop App?</span><span class="step-num">Overview</span></div>
+      <div class="step-body">
+        A graphical interface for Claude Code — same agent, no terminal required. Best for onboarding non-CLI teammates or running side-by-side with Figma on a second monitor. Shares all MCP configs and settings with the CLI.
+        <div class="code">Download: https://claude.ai/download  (macOS and Windows)</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Setup</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Download, open, sign in with your Anthropic account. Open a project folder via <strong>File → Open Folder</strong>. The app reads <code>CLAUDE.md</code> automatically if present in the project root. All MCP servers in <code>~/.claude/settings.json</code> are shared with the CLI — no duplicate setup required.
+      </div>
+    </div>
+  </div>
+
+  <div id="cc-auth" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">Account options</span><span class="step-num">Plans</span></div>
+      <div class="step-body">
+        <div class="row2">
+          <div class="mini-card"><strong>Claude Pro ($20/mo)</strong>Works for most developers. Covers CLI + web usage.</div>
+          <div class="mini-card"><strong>Claude Max ($100–200/mo)</strong>Higher rate limits for heavy agentic / sprint-intensive use.</div>
+          <div class="mini-card"><strong>Console API key</strong>Pay-per-token. Best for team billing, Bedrock, or Vertex setups.</div>
+          <div class="mini-card"><strong>Teams / Enterprise</strong>Centralised billing, SSO, admin controls. Required for client accounts.</div>
+        </div>
+        <div class="warn">The free Claude.ai plan does not include Claude Code access.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">API key / cloud provider auth</span><span class="step-num">Alt auth</span></div>
+      <div class="step-body">
+        <div class="code">export ANTHROPIC_API_KEY="sk-ant-..."
+# Amazon Bedrock:
+export CLAUDE_CODE_USE_BEDROCK=1
+# Google Vertex AI:
+export CLAUDE_CODE_USE_VERTEX=1</div>
+        Add to <code>~/.zshrc</code> or <code>~/.bashrc</code> to persist.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ 03 CURSOR ═══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="tag tag-teal">03</span>
+    <span class="h2">Cursor Setup</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('cur','install',this)">Install &amp; Model</div>
+    <div class="tab" onclick="switchTab('cur','mcp',this)">MCP Config</div>
+    <div class="tab" onclick="switchTab('cur','rules',this)">.cursor/rules</div>
+  </div>
+
+  <div id="cur-install" class="panel active">
+    <div class="step">
+      <div class="step-top"><span class="step-title">Install Cursor</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Download from <strong>cursor.com</strong>. Built on VS Code — all existing extensions work.
+        <div class="code">Download: https://cursor.com</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Set default model</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        Cursor Settings → Models → set <strong>claude-sonnet-4-6</strong> as default for Agent and Chat. Switch to <strong>claude-opus-4-6</strong> manually for complex architecture or spec work.
+        <div class="note">Use Sonnet 4 for speed during build iterations. Opus 4 for architectural decisions, spec generation, and multi-file reasoning tasks.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Enable Agent mode</span><span class="step-num">Step 3</span></div>
+      <div class="step-body">
+        In Cursor's chat panel, toggle to <strong>Agent</strong>. Agent mode allows multi-file edits, terminal commands, and MCP tool use — primary mode for all delivery build work.<br><br>
+        <strong>Plan mode</strong> (Cursor 2.0+): select "plan" to co-build an execution plan with Claude before any code is written.
+      </div>
+    </div>
+  </div>
+
+  <div id="cur-mcp" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">Project-level MCP config</span><span class="step-num">Step 1</span></div>
+      <div class="step-body">
+        Create <code>.cursor/mcp.json</code> in your project root (git-committed, shared with team):
+        <div class="code">{
+  "mcpServers": {
+    "figma": { "url": "https://mcp.figma.com/mcp" }
+  }
+}</div>
+        <div class="note">Use <strong>project-level</strong> <code>.cursor/mcp.json</code> for project-specific servers (Figma, client databases). Use <strong>Cursor Settings → MCP (global)</strong> for tools you want everywhere (GitHub, Slack, Linear).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">Verify MCP connections</span><span class="step-num">Step 2</span></div>
+      <div class="step-body">
+        In Cursor's agent chat:
+        <div class="code">What MCP tools do you have available?</div>
+        Cursor loads all configured MCP tools at session start. If a server isn't showing, restart Cursor and check the MCP tab in settings.
+      </div>
+    </div>
+  </div>
+
+  <div id="cur-rules" class="panel">
+    <div class="step">
+      <div class="step-top"><span class="step-title">What are Cursor Rules?</span><span class="step-num">Context</span></div>
+      <div class="step-body">
+        Rules (<code>.cursor/rules/*.mdc</code>) are markdown files with YAML front matter — Cursor reads them as persistent agent instructions. Git-committed and shared with the team. Scoped by file glob. Use them to encode coding standards, component patterns, and platform conventions.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-top"><span class="step-title">CLAUDE.md vs .cursor/rules</span><span class="step-num">Key distinction</span></div>
+      <div class="step-body">
+        <div class="row2">
+          <div class="mini-card"><strong>CLAUDE.md</strong>Read by Claude Code (CLI + Desktop). Project context, active skills, platform constraints, what to never do. One file per project root.</div>
+          <div class="mini-card"><strong>.cursor/rules/*.mdc</strong>Read by Cursor agent. Coding standards, file glob scopes, always-apply flags. Multiple files, each scoped to a pattern.</div>
+        </div>
+        <div class="tip">Both files are git-committed. CLAUDE.md is your planning and spec context. .cursor/rules are your implementation guardrails. Platform-specific templates for both are in Section 04.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ 04 PLATFORM CONTEXT FILES ═══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="tag tag-purple">04</span>
+    <span class="h2">Platform Context Files</span>
+  </div>
+
+  <div class="step" style="margin-bottom:14px;">
+    <div class="step-top"><span class="step-title">How this layer works</span><span class="step-num">Overview</span></div>
+    <div class="step-body">
+      Sections 01–03 are <strong>identical regardless of platform</strong>. What changes per engagement is the context layer: the <code>CLAUDE.md</code> and <code>.cursor/rules</code> files that tell the agents what platform they are building on, what conventions apply, and what to avoid.<br><br>
+      Select a platform below to see the drop-in templates for both files.
+    </div>
+  </div>
+
+  <div class="platform-grid">
+    <div class="platform-btn active"  onclick="switchPlatform('sitecore',this)">Sitecore XM Cloud</div>
+    <div class="platform-btn"        onclick="switchPlatform('salesforce',this)">Salesforce</div>
+    <div class="platform-btn"        onclick="switchPlatform('shopify',this)">Shopify</div>
+    <div class="platform-btn"        onclick="switchPlatform('optimizely',this)">Optimizely</div>
+    <div class="platform-btn"        onclick="switchPlatform('headless',this)">Headless / Custom</div>
+  </div>
+
+  <!-- SITECORE -->
+  <div id="platform-sitecore" class="platform-block active">
+    <div class="section-label">CLAUDE.md — Sitecore XM Cloud</div>
+    <div class="code"><span class="cm"># Project: [Client Name]</span>
+
+## Platform
+- Sitecore XM Cloud + JSS
+- Next.js 14 App Router
+- Rendering host: Vercel / Edge
+
+## Component model
+- JSS SitecoreContext for all data access
+- Components export default with ComponentParams + SitecoreContext types
+- No hardcoded strings — all content via Sitecore fields
+- Layout service v3 — no legacy layout service patterns
+
+## Skills (active)
+- xcm-spec-generator
+- xcm-component-gen
+- xcm-validation
+- qa-handoff
+
+## Constraints
+- No deprecated Sitecore patterns (Presentation Details, WebForms)
+- Field types must match Sitecore item template definitions
+- Never commit directly to main
+
+## Do not hallucinate
+- Sitecore field names — confirm from spec or item template
+- JSS component registration — follow /src/temp/componentFactory</div>
+
+    <div class="section-label">.cursor/rules/platform.mdc — Sitecore XM Cloud</div>
+    <div class="code">---
+description: Sitecore XM Cloud platform rules
+globs: ["**/*.tsx", "**/*.ts", "src/**/*"]
+alwaysApply: true
+---
+
+# Sitecore XM Cloud Conventions
+
+## Data access
+- Use JSS SitecoreContext and withSitecoreContext HOC
+- useSitecoreContext() hook for functional components
+- No direct API calls — all data through layout service
+
+## TypeScript
+- Strict mode. No implicit any.
+- Interface over type for component props
+- Export interfaces from /src/types/[ComponentName].ts
+
+## Styling
+- Tailwind utility classes only — no inline styles
+- Spacing values must map to design tokens in tailwind.config.ts
+
+## File structure
+- src/components/[ComponentName]/index.tsx
+
+## Git
+- Branch: feature/{jira-id}-{description}
+- Conventional commits: feat / fix / chore / docs</div>
+  </div>
+
+  <!-- SALESFORCE -->
+  <div id="platform-salesforce" class="platform-block">
+    <div class="section-label">CLAUDE.md — Salesforce</div>
+    <div class="code"><span class="cm"># Project: [Client Name]</span>
+
+## Platform
+- Salesforce <span class="cm"># specify: Sales Cloud / Service Cloud / Experience Cloud</span>
+- LWC (Lightning Web Components) + Apex
+- Deployment: Salesforce DX / scratch orgs
+
+## Component model
+- LWC for all UI components
+- Apex controllers for data logic — no SOQL in component JS
+- Use @wire adapters where available before writing Apex
+- No Aura components — LWC only for new work
+
+## Skills (active)
+- xcm-spec-generator
+- xcm-component-gen
+- xcm-validation
+- qa-handoff
+
+## Constraints
+- No hardcoded IDs or record types — use Custom Metadata or Labels
+- Governor limits must be considered in all Apex (SOQL in loops = blocker)
+- All Apex must have >75% test coverage
+
+## Do not hallucinate
+- Object API names — confirm from client org schema
+- Field API names — confirm from page layout or field list</div>
+
+    <div class="section-label">.cursor/rules/platform.mdc — Salesforce</div>
+    <div class="code">---
+description: Salesforce LWC + Apex platform rules
+globs: ["force-app/**/*", "**/*.cls", "**/*.html", "**/*.js"]
+alwaysApply: true
+---
+
+# Salesforce Conventions
+
+## LWC
+- One component per folder: .html / .js / .css / .js-meta.xml
+- Use @wire for standard adapters (getRecord, getRelatedListRecords)
+- Custom events use kebab-case names
+- No direct DOM manipulation — use @track / reactive properties
+
+## Apex
+- All SOQL must be bulkified — never in for-loops
+- All DML inside try/catch with meaningful error handling
+- Every class needs a [ClassName]Test.cls with @isTest
+
+## Naming
+- LWC: camelCase component name, kebab-case in markup
+- Apex: PascalCase classes, camelCase methods
+
+## Git
+- Branch: feature/{jira-id}-{description}
+- Conventional commits: feat / fix / chore / docs</div>
+  </div>
+
+  <!-- SHOPIFY -->
+  <div id="platform-shopify" class="platform-block">
+    <div class="section-label">CLAUDE.md — Shopify</div>
+    <div class="code"><span class="cm"># Project: [Client Name]</span>
+
+## Platform
+- Shopify <span class="cm"># specify: Online Store 2.0 / Hydrogen / Headless</span>
+- Theme: Dawn-based / custom / Hydrogen React
+- Deployment: Shopify CLI / Oxygen (if Hydrogen)
+
+## Component model
+- OS 2.0: Liquid sections + blocks with schema JSON
+- Hydrogen: React components + Shopify Storefront API (GraphQL)
+- No hardcoded product IDs or collection handles
+
+## Skills (active)
+- xcm-spec-generator
+- xcm-component-gen
+- xcm-validation
+- qa-handoff
+
+## Constraints
+- OS 2.0 sections must include schema with settings and presets
+- No edits that break Dawn upgrade compatibility unless intentional
+- All GraphQL queries must include only required fields (no over-fetching)
+
+## Do not hallucinate
+- Metafield namespaces — confirm from client Shopify admin
+- Storefront API field names — confirm from Shopify API docs</div>
+
+    <div class="section-label">.cursor/rules/platform.mdc — Shopify</div>
+    <div class="code">---
+description: Shopify OS 2.0 / Hydrogen platform rules
+globs: ["sections/**/*", "snippets/**/*", "app/**/*", "**/*.liquid"]
+alwaysApply: true
+---
+
+# Shopify Conventions
+
+## Online Store 2.0 (Liquid)
+- Sections in /sections — always include {% schema %} with settings + presets
+- Snippets in /snippets — reusable partials, no schema
+- Use {{ 'key' | t }} for all user-facing strings
+- CSS scoped to section using .section-[id] namespace
+
+## Hydrogen (React + GraphQL)
+- Loaders fetch data server-side — no client-side Storefront API calls
+- GraphQL fragments in /app/lib/fragments.ts
+- Pages in /app/routes following Remix file-based routing
+
+## Performance
+- Images always use Shopify CDN URL with size params
+- No blocking scripts in section schema — defer / async only
+
+## Git
+- Branch: feature/{jira-id}-{description}
+- Conventional commits: feat / fix / chore / docs</div>
+  </div>
+
+  <!-- OPTIMIZELY -->
+  <div id="platform-optimizely" class="platform-block">
+    <div class="section-label">CLAUDE.md — Optimizely</div>
+    <div class="code"><span class="cm"># Project: [Client Name]</span>
+
+## Platform
+- Optimizely CMS <span class="cm"># specify: CMS 12 / SaaS CMS / Configured Commerce</span>
+- .NET 6+ / React frontend (if decoupled)
+- Deployment: DXP Cloud / self-hosted
+
+## Component model
+- Content Types as C# classes decorated with [ContentType]
+- Blocks, Pages, and Media types follow OPE naming conventions
+- Properties use EPiServer.Core types — no raw C# primitives for content
+
+## Skills (active)
+- xcm-spec-generator
+- xcm-component-gen
+- xcm-validation
+- qa-handoff
+
+## Constraints
+- No direct DB access — use IContentRepository and Find APIs
+- Content types must register in initialisation modules
+- Scheduled jobs extend ScheduledJobBase with [ScheduledPlugIn] attribute
+
+## Do not hallucinate
+- Content type GUID values — generate new ones, never reuse
+- Property names — must match exactly what is in the content model</div>
+
+    <div class="section-label">.cursor/rules/platform.mdc — Optimizely</div>
+    <div class="code">---
+description: Optimizely CMS 12 platform rules
+globs: ["**/*.cs", "**/*.cshtml", "Features/**/*", "Models/**/*"]
+alwaysApply: true
+---
+
+# Optimizely CMS Conventions
+
+## Content types
+- One class per file in /Models/Pages or /Models/Blocks
+- [ContentType] attribute required with unique GUID
+- [Display] attribute on all properties for editor labels
+- Inherit from PageData / BlockData / ImageData as appropriate
+
+## Architecture
+- Feature folders: /Features/[Name]/{Controller, ViewModel, Views}
+- No logic in views — use ViewModels and tag helpers
+- IContentRepository for all content reads, never direct DB
+
+## C# standards
+- Nullable reference types enabled
+- Async/await for all controller actions
+- No magic strings — use nameof() or constants
+
+## Git
+- Branch: feature/{jira-id}-{description}
+- Conventional commits: feat / fix / chore / docs</div>
+  </div>
+
+  <!-- HEADLESS / CUSTOM -->
+  <div id="platform-headless" class="platform-block">
+    <div class="step" style="margin-bottom:10px;">
+      <div class="step-top"><span class="step-title">Fill in the placeholders at project kickoff</span><span class="step-num">Instructions</span></div>
+      <div class="step-body">
+        The headless template uses <strong style="color:#633806;">orange placeholders</strong> for parts that vary per engagement. Fill these in during the Discovery / sprint 0 phase — they become the platform constraint block injected into all spec prompts via the xcm-spec-generator skill.
+      </div>
+    </div>
+
+    <div class="section-label">CLAUDE.md — Headless / Custom Stack</div>
+    <div class="code"><span class="cm"># Project: [Client Name]</span>
+
+## Platform
+<span class="ph"># Fill in: CMS / backend / frontend framework
+# e.g. Contentful + Next.js 14
+#      Storyblok + Nuxt 3
+#      Sanity + Remix
+#      Custom API + React</span>
+- CMS: <span class="ph">[name + API type: REST / GraphQL / SDK]</span>
+- Frontend: <span class="ph">[framework + version]</span>
+- Deployment: <span class="ph">[Vercel / Netlify / AWS / other]</span>
+
+## Component model
+<span class="ph"># Define how components map to CMS content types
+# e.g. "Components map 1:1 to CMS content types"
+# e.g. "Data fetching in server components only — no client-side CMS calls"
+# e.g. "All content sourced from CMS — no hardcoded copy in JSX"</span>
+
+## Skills (active)
+- xcm-spec-generator
+- xcm-component-gen
+- xcm-validation
+- qa-handoff
+
+## Constraints
+<span class="ph"># What Claude must NOT do on this stack
+# e.g. "No client-side CMS API calls — SSR only"
+# e.g. "No hardcoded content — everything sourced from CMS"
+# e.g. "No inline styles — Tailwind only"</span>
+
+## Do not hallucinate
+<span class="ph"># Areas where Claude is likely to guess wrong
+# e.g. "Content type field names — check /src/types/cms.ts"
+# e.g. "API endpoint paths — check /src/lib/api.ts"</span></div>
+
+    <div class="section-label">.cursor/rules/platform.mdc — Headless / Custom Stack</div>
+    <div class="code">---
+description: <span class="ph">[Client name] — [CMS + framework] platform rules</span>
+globs: <span class="ph">["src/**/*", "app/**/*"]  # adjust to project structure</span>
+alwaysApply: true
+---
+
+# <span class="ph">[Platform Name]</span> Conventions
+
+## Data fetching
+<span class="ph"># Where and how data is fetched
+# e.g. "All CMS queries in /lib/cms.ts — no inline fetches in components"
+# e.g. "Use server components for CMS data, client components for interactivity only"
+# e.g. "No direct fetch() calls in components — use shared query functions"</span>
+
+## TypeScript
+- Strict mode enabled. No implicit any.
+- CMS content types generated from schema — do not hand-write
+<span class="ph"># Add any project-specific type conventions</span>
+
+## Styling
+<span class="ph"># e.g. Tailwind only / CSS Modules / Styled Components
+# Include token mapping if a design system is in use</span>
+
+## File structure
+<span class="ph"># e.g. src/components/[Name]/index.tsx
+# e.g. app/[route]/page.tsx for Next.js App Router
+# e.g. One component per folder with co-located styles and tests</span>
+
+## Git
+- Branch: feature/{jira-id}-{description}
+- Conventional commits: feat / fix / chore / docs</div>
+
+    <div class="tip">The platform constraint block (this file + CLAUDE.md) is what xcm-spec-generator injects into every spec prompt. The more precisely you fill in the placeholders at kickoff, the less correction work you'll need during Validation.</div>
+  </div>
+
+</div><!-- /section 04 -->
+
+</div><!-- /wrap -->
+<script>
+function switchTab(section, panel, el) {
+  document.querySelectorAll('[id^="' + section + '-"]').forEach(p => p.classList.remove('active'));
+  document.getElementById(section + '-' + panel).classList.add('active');
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+function switchPlatform(name, el) {
+  document.querySelectorAll('.platform-block').forEach(b => b.classList.remove('active'));
+  document.getElementById('platform-' + name).classList.add('active');
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
