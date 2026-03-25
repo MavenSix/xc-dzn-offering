@@ -1,0 +1,3033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XCentium Prompt Library</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f7f6f2;
+  --bg2: #f0ede5;
+  --bg3: #e8e4da;
+  --surface: #ffffff;
+  --border: #e2ddd4;
+  --border2: #ccc8be;
+  --text: #1a1916;
+  --text2: #5c5a54;
+  --text3: #8c8981;
+
+  --purple-bg: #EEEDFE; --purple-border: #AFA9EC; --purple-text: #3C3489;
+  --teal-bg: #E1F5EE;   --teal-border: #5DCAA5;   --teal-text: #085041;
+  --coral-bg: #FAECE7;  --coral-border: #F0997B;  --coral-text: #712B13;
+  --amber-bg: #FAEEDA;  --amber-border: #EF9F27;  --amber-text: #633806;
+  --blue-bg: #E6F1FB;   --blue-border: #85B7EB;   --blue-text: #0C447C;
+  --green-bg: #EAF3DE;  --green-border: #97C459;  --green-text: #27500A;
+  --pink-bg: #FBEAF0;   --pink-border: #ED93B1;   --pink-text: #72243E;
+  --gray-bg: #F1EFE8;   --gray-border: #B4B2A9;   --gray-text: #444441;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0 2rem;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem;
+}
+.topbar-left { display: flex; align-items: center; gap: 1rem; }
+.logo { font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: -0.01em; }
+.logo span { color: var(--text3); font-weight: 300; }
+.version-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; padding: 2px 7px;
+  background: var(--amber-bg); color: var(--amber-text);
+  border: 0.5px solid var(--amber-border);
+  border-radius: 10px; font-weight: 400;
+}
+.search-wrap { flex: 1; max-width: 340px; position: relative; }
+.search-wrap input {
+  width: 100%; height: 32px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  background: var(--bg); border: 0.5px solid var(--border2);
+  border-radius: 8px; padding: 0 10px 0 30px;
+  color: var(--text); outline: none;
+  transition: border-color 0.15s;
+}
+.search-wrap input:focus { border-color: var(--border2); background: var(--surface); }
+.search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+.topbar-stats { display: flex; gap: 16px; align-items: center; }
+.stat { font-size: 11px; color: var(--text3); }
+.stat strong { color: var(--text2); font-weight: 500; }
+
+/* ── LAYOUT ── */
+.layout { display: flex; flex: 1; min-height: 0; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--surface);
+  border-right: 0.5px solid var(--border);
+  padding: 1.25rem 0;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+.sidebar-section { margin-bottom: 1.5rem; }
+.sidebar-label {
+  font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text3);
+  padding: 0 1.25rem; margin-bottom: 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 1.25rem; cursor: pointer;
+  font-size: 12.5px; color: var(--text2);
+  border-left: 2px solid transparent;
+  transition: all 0.1s; user-select: none;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active {
+  background: var(--bg2); color: var(--text);
+  border-left-color: var(--text);
+  font-weight: 500;
+}
+.nav-count {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--text3);
+  background: var(--bg2); padding: 1px 5px;
+  border-radius: 8px;
+}
+.nav-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── MAIN ── */
+.main { flex: 1; padding: 2rem 2.5rem; overflow-y: auto; max-width: 100%; }
+.section-header { margin-bottom: 1.5rem; }
+.section-title { font-size: 19px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 4px; }
+.section-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ── FILTERS ── */
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.75rem; }
+.filter-chip {
+  font-size: 11px; padding: 4px 11px; border-radius: 20px;
+  border: 0.5px solid var(--border2);
+  background: var(--surface); color: var(--text2);
+  cursor: pointer; user-select: none;
+  transition: all 0.1s; font-weight: 400;
+}
+.filter-chip:hover { background: var(--bg2); color: var(--text); }
+.filter-chip.active { background: var(--text); color: var(--surface); border-color: var(--text); font-weight: 500; }
+
+/* ── PROMPT CARDS GRID ── */
+.cards-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+/* ── PROMPT CARD ── */
+.card {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--border2); }
+.card.hidden { display: none; }
+
+.card-head {
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 0.5px solid var(--bg2);
+  cursor: pointer;
+  user-select: none;
+}
+.card-head-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.card-title { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; flex: 1; }
+.card-ver {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--text3); white-space: nowrap; margin-top: 2px;
+}
+.card-desc { font-size: 12px; color: var(--text2); line-height: 1.55; margin-bottom: 10px; }
+.card-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.tag {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 400; padding: 2px 7px;
+  border-radius: 6px; border: 0.5px solid;
+}
+.tag-phase  { background: var(--gray-bg);   color: var(--gray-text);   border-color: var(--gray-border); }
+.tag-skill  { background: var(--purple-bg); color: var(--purple-text); border-color: var(--purple-border); }
+.tag-plat   { background: var(--blue-bg);   color: var(--blue-text);   border-color: var(--blue-border); }
+.tag-output { background: var(--teal-bg);   color: var(--teal-text);   border-color: var(--teal-border); }
+.tag-cond   { background: var(--amber-bg);  color: var(--amber-text);  border-color: var(--amber-border); }
+
+.card-body { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.card-body.open { max-height: 9999px; }
+
+.prompt-area { position: relative; }
+.prompt-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px; line-height: 1.75;
+  padding: 1.25rem 1.25rem 1rem;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+  overflow: auto;
+}
+.prompt-text .cm  { color: var(--text3); }
+.prompt-text .ph  { color: var(--amber-text); font-style: italic; }
+.prompt-text .kw  { color: var(--purple-text); font-weight: 500; }
+.prompt-text .sec { color: var(--teal-text); font-weight: 500; }
+.prompt-text .var { color: var(--blue-text); }
+
+.card-foot {
+  padding: 10px 1.25rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface);
+}
+.foot-meta { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.copy-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'DM Sans', sans-serif; font-size: 11.5px; font-weight: 500;
+  padding: 5px 12px; border-radius: 6px;
+  border: 0.5px solid var(--border2);
+  background: var(--surface); color: var(--text2);
+  cursor: pointer; transition: all 0.15s;
+}
+.copy-btn:hover { background: var(--bg2); color: var(--text); border-color: var(--text3); }
+.copy-btn.copied { background: var(--teal-bg); color: var(--teal-text); border-color: var(--teal-border); }
+
+/* ── SECTION DIVIDERS ── */
+.section-divider { margin: 2.5rem 0 1.5rem; }
+.div-line {
+  display: flex; align-items: center; gap: 12px;
+  border-top: 0.5px dashed var(--border2); padding-top: 1.5rem;
+}
+.div-title { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+.phase-badge {
+  font-size: 9px; font-weight: 500; padding: 2px 8px; border-radius: 10px;
+}
+
+/* ── CONSTRAINT BLOCKS ── */
+.constraint-block {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 12px; margin-bottom: 12px;
+}
+.cb-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 0.5px solid var(--bg2);
+  cursor: pointer;
+}
+.cb-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.cb-title { font-size: 13px; font-weight: 500; }
+.cb-sub   { font-size: 11px; color: var(--text3); }
+.cb-body  { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+.cb-body.open { max-height: 9999px; }
+
+/* ── STRUCTURE VIEW ── */
+.tree {
+  font-family: 'DM Mono', monospace; font-size: 11.5px; line-height: 2;
+  background: var(--bg); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 1.25rem 1.5rem; color: var(--text2);
+}
+.tree .dir { color: var(--blue-text); font-weight: 500; }
+.tree .file { color: var(--text); }
+.tree .cmt  { color: var(--text3); font-style: italic; }
+.tree .hot  { color: var(--teal-text); font-weight: 500; }
+
+/* ── CHANGELOG ── */
+.cl-entry {
+  border: 0.5px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.25rem; margin-bottom: 10px; background: var(--surface);
+}
+.cl-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cl-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+.cl-template { font-size: 13px; font-weight: 500; }
+.cl-items { list-style: none; }
+.cl-items li { font-size: 12px; color: var(--text2); line-height: 1.6; padding: 2px 0; display: flex; gap: 8px; }
+.cl-items li::before { content: "→"; color: var(--text3); }
+
+/* ── METRICS TABLE ── */
+.metrics-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.metrics-table th {
+  text-align: left; padding: 8px 12px;
+  background: var(--bg2); color: var(--text2);
+  font-weight: 500; font-size: 11px;
+  border-bottom: 0.5px solid var(--border);
+}
+.metrics-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--bg2); }
+.metrics-table tr:last-child td { border-bottom: none; }
+.target { color: var(--teal-text); font-family: 'DM Mono', monospace; font-size: 11px; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 4rem 2rem; color: var(--text3); }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .sidebar { display: none; }
+  .main { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">XCentium <span>/</span> Prompt Library</div>
+    <span class="version-pill">v1.1 · March 2026</span>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M9 9 L12 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    <input type="text" placeholder="Search prompts, tags, platforms…" id="search-input" autocomplete="off">
+  </div>
+  <div class="topbar-stats">
+    <div class="stat"><strong id="visible-count">29</strong> prompts</div>
+    <div class="stat"><strong>8</strong> phases</div>
+    <div class="stat"><strong>5</strong> platforms</div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Library</div>
+    <div class="nav-item active" onclick="showSection('all',this)">
+      <div class="nav-dot" style="background:#888"></div>All Prompts
+      <span class="nav-count" id="count-all">29</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Designers</div>
+    <div class="nav-item" onclick="showSection('design-discovery',this)">
+      <div class="nav-dot" style="background:var(--pink-border)"></div>Discovery &amp; Research
+      <span class="nav-count" id="count-design-discovery">2</span>
+    </div>
+    <div class="nav-item" onclick="showSection('design-figma',this)">
+      <div class="nav-dot" style="background:var(--purple-border)"></div>Figma &amp; Design System
+      <span class="nav-count" id="count-design-figma">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('design-proto',this)">
+      <div class="nav-dot" style="background:var(--amber-border)"></div>Prototyping &amp; Concepting
+      <span class="nav-count" id="count-design-proto">3</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">By Phase</div>
+    <div class="nav-item" onclick="showSection('spec',this)">
+      <div class="nav-dot" style="background:var(--purple-border)"></div>Spec &amp; Generation
+      <span class="nav-count" id="count-spec">6</span>
+    </div>
+    <div class="nav-item" onclick="showSection('stories',this)">
+      <div class="nav-dot" style="background:var(--teal-border)"></div>Stories &amp; QA
+      <span class="nav-count" id="count-stories">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('validation',this)">
+      <div class="nav-dot" style="background:var(--coral-border)"></div>Validation
+      <span class="nav-count" id="count-validation">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('components',this)">
+      <div class="nav-dot" style="background:var(--blue-border)"></div>Component Gen
+      <span class="nav-count" id="count-components">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('handoff',this)">
+      <div class="nav-dot" style="background:var(--amber-border)"></div>Handoff &amp; Context
+      <span class="nav-count" id="count-handoff">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('maintenance',this)">
+      <div class="nav-dot" style="background:var(--green-border)"></div>Prompt Maintenance
+      <span class="nav-count" id="count-maintenance">3</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">By Platform</div>
+    <div class="nav-item" onclick="filterByPlatform('Sitecore',this)">
+      <div class="nav-dot" style="background:var(--pink-border)"></div>Sitecore XM Cloud
+    </div>
+    <div class="nav-item" onclick="filterByPlatform('Salesforce',this)">
+      <div class="nav-dot" style="background:var(--blue-border)"></div>Salesforce
+    </div>
+    <div class="nav-item" onclick="filterByPlatform('Shopify',this)">
+      <div class="nav-dot" style="background:var(--green-border)"></div>Shopify
+    </div>
+    <div class="nav-item" onclick="filterByPlatform('Headless',this)">
+      <div class="nav-dot" style="background:var(--amber-border)"></div>Headless / Custom
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Reference</div>
+    <div class="nav-item" onclick="showSection('constraints',this)">
+      <div class="nav-dot" style="background:var(--gray-border)"></div>Constraint Blocks
+    </div>
+    <div class="nav-item" onclick="showSection('structure',this)">
+      <div class="nav-dot" style="background:var(--gray-border)"></div>Library Structure
+    </div>
+    <div class="nav-item" onclick="showSection('metrics',this)">
+      <div class="nav-dot" style="background:var(--gray-border)"></div>Metrics &amp; Changelog
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- ─── SECTION: ALL PROMPTS ─── -->
+  <div id="section-all">
+    <div class="section-header">
+      <div class="section-title">Prompt Library</div>
+      <div class="section-desc">All workflow templates — copy, adapt, and version-control. Organized by delivery phase.</div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-chip active" onclick="filterCards(this,'all')">All</div>
+      <div class="filter-chip" onclick="filterCards(this,'design-discovery')">Discovery</div>
+      <div class="filter-chip" onclick="filterCards(this,'design-figma')">Figma &amp; DS</div>
+      <div class="filter-chip" onclick="filterCards(this,'design-proto')">Prototyping</div>
+      <div class="filter-chip" onclick="filterCards(this,'spec')">Spec Generation</div>
+      <div class="filter-chip" onclick="filterCards(this,'stories')">Stories &amp; QA</div>
+      <div class="filter-chip" onclick="filterCards(this,'validation')">Validation</div>
+      <div class="filter-chip" onclick="filterCards(this,'components')">Components</div>
+      <div class="filter-chip" onclick="filterCards(this,'handoff')">Handoff</div>
+      <div class="filter-chip" onclick="filterCards(this,'maintenance')">Maintenance</div>
+    </div>
+
+    <div class="cards-grid" id="cards-grid">
+
+      <!-- ══════ DESIGNER — DISCOVERY & RESEARCH ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Discovery &amp; Research</div>
+          <span class="phase-badge tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer · Claude.ai</span>
+        </div>
+      </div>
+
+      <!-- D01: Research Synthesis → Design Brief -->
+      <div class="card" data-section="design-discovery" data-tags="Research Synthesis,UXR,Design Brief,Discovery,Designer,Claude.ai">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Research Synthesis → Design Brief</div>
+            <div class="card-ver">D01 · v1.0</div>
+          </div>
+          <div class="card-desc">Synthesize raw UXR notes, interview transcripts, or workshop outputs into a structured design brief. Used at the end of Discovery to transition cleanly into the Design phase in Figma.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Discovery</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-output">Design Brief</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D01 — Research Synthesis → Design Brief</span>
+<span class="cm"># Tool: Claude.ai · Phase: Discovery → Design</span>
+<span class="sec">## Inputs</span>
+<span class="ph">RESEARCH_INPUT</span>: [paste interview notes, survey results, workshop sticky notes,
+                  heatmap findings, analytics highlights — any format]
+<span class="ph">PROJECT_NAME</span>: [client / project]
+<span class="ph">SCOPE</span>: [e.g. "Homepage redesign", "Checkout flow", "Account dashboard"]
+<span class="ph">PLATFORM</span>: [Sitecore / Salesforce / Shopify / Headless]
+<span class="ph">BUSINESS_GOALS</span>: [conversion targets, engagement goals, client KPIs]
+
+<span class="sec">## Task</span>
+Synthesize <span class="ph">RESEARCH_INPUT</span> into a structured design brief for <span class="ph">SCOPE</span>.
+
+<span class="var">1. User Insights (top 5–7)</span>
+   Each insight: one declarative sentence + 2–3 supporting evidence quotes or data points.
+   Format: insight → evidence → design implication.
+   Distinguish between: observed behavior vs. stated preference vs. inferred need.
+
+<span class="var">2. Jobs To Be Done</span>
+   Primary JTBD: "When _____, I want to _____, so I can _____."
+   Secondary JTBDs: (2–3 supporting jobs)
+   Anxieties and friction points observed in research.
+
+<span class="var">3. Design Principles (3–5)</span>
+   Derived directly from insights — not generic best practices.
+   Each principle: name + one-sentence rationale + one design implication.
+   Example format: "Reduce before reveal — users felt overwhelmed by options early.
+   Implication: progressive disclosure on complex flows."
+
+<span class="var">4. Scope Definition</span>
+   In scope: [list]
+   Out of scope: [list — critical to define]
+   Open questions needing design exploration: [list]
+
+<span class="var">5. Success Criteria</span>
+   How will we know the design worked?
+   Tie to <span class="ph">BUSINESS_GOALS</span> with specific measurable indicators.
+
+<span class="var">6. Figma Starting Point</span>
+   Recommended first Figma frames to create based on the research.
+   Priority components to design first (highest user impact, highest business value).
+
+<span class="cm">## Output</span>
+Save to: /briefs/<span class="ph">PROJECT_NAME</span>-design-brief.md
+Share with client for alignment before Figma work begins.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Input: raw research · Output: brief shared before Figma starts</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- D02: Competitive + Analogous Design Audit -->
+      <div class="card" data-section="design-discovery" data-tags="Competitive Audit,Analogous Research,Design Patterns,Discovery,Designer,Claude.ai">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Competitive &amp; Analogous Design Pattern Audit</div>
+            <div class="card-ver">D02 · v1.0</div>
+          </div>
+          <div class="card-desc">Analyze competitor sites or analogous experiences to extract design patterns, interaction conventions, and strategic opportunities. Feeds directly into Figma exploration.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Discovery</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-output">Pattern Audit</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D02 — Competitive + Analogous Design Audit</span>
+<span class="cm"># Tool: Claude.ai (with web search) · Phase: Discovery</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FOCUS_AREA</span>: [e.g. "checkout flow", "product filtering", "onboarding", "navigation"]
+<span class="ph">COMPETITORS</span>: [list URLs or names — 3–5 direct competitors]
+<span class="ph">ANALOGOUS</span>: [list URLs of non-competitor but relevant experiences — e.g. best-in-class examples
+              from other industries: "Airbnb search", "Linear onboarding", "Stripe dashboard"]
+<span class="ph">OUR_CONTEXT</span>: [brief description of our product, user, and constraint]
+
+<span class="sec">## Task</span>
+Analyze <span class="ph">FOCUS_AREA</span> across competitors and analogous references.
+
+<span class="var">1. Pattern Inventory</span>
+   For each site/experience:
+   - What pattern do they use for <span class="ph">FOCUS_AREA</span>?
+   - What interaction model? (scroll, click, filter, wizard, etc.)
+   - What does it do well? What friction exists?
+   Rate: Strong reference / Partial reference / Anti-pattern to avoid.
+
+<span class="var">2. Convention Map</span>
+   What patterns appear across 3+ of the references? → Established convention.
+   What patterns appear in only 1–2? → Differentiator opportunity.
+   What pattern is conspicuously absent? → Unmet standard or innovation space.
+
+<span class="var">3. Interaction Principles Extracted</span>
+   5–7 design principles derived from what works across the references.
+   Format: principle name + what the evidence shows + design implication for us.
+
+<span class="var">4. Figma Exploration Recommendations</span>
+   Based on this audit, what 2–3 distinct design directions should be explored?
+   For each direction: name, one-line description, key interaction hypothesis.
+   These become named explorations in the Figma file.
+
+<span class="var">5. Risks &amp; Watch-Outs</span>
+   Patterns that look attractive but have known UX pitfalls.
+   Patterns that are technically complex relative to <span class="ph">OUR_CONTEXT</span>.
+
+<span class="cm">## Output</span>
+Save to: /briefs/<span class="ph">FOCUS_AREA</span>-competitive-audit.md
+Pin to Figma cover frame as reference before exploration begins.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Uses web search · Run before Figma exploration begins</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ DESIGNER — FIGMA & DESIGN SYSTEM ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Figma &amp; Design System</div>
+          <span class="phase-badge tag tag-phase" style="background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border);">Designer · Figma MCP + Claude</span>
+        </div>
+      </div>
+
+      <!-- D03: Figma Component Auto-Documentation -->
+      <div class="card" data-section="design-figma" data-tags="Figma,Component Documentation,Design System,Annotation,Designer,Figma MCP">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Figma Component Auto-Documentation</div>
+            <div class="card-ver">D03 · v1.1</div>
+          </div>
+          <div class="card-desc">Read a Figma component and generate complete developer-facing documentation — usage guidelines, variant inventory, do/don't examples, and accessibility notes. Eliminates manual annotation work.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Design</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Figma MCP</span>
+            <span class="tag tag-output">Component Docs</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D03 — Figma Component Auto-Documentation</span>
+<span class="cm"># Tool: Claude Code + Figma MCP · Phase: Design</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FIGMA_URL</span>: [Figma component URL — master component, not an instance]
+<span class="ph">COMPONENT_NAME</span>: [e.g. "Button", "Card", "Navigation", "Form Field"]
+<span class="ph">DS_NAME</span>: [design system name, if part of one]
+<span class="ph">AUDIENCE</span>: [Developers / Designers / Both]
+
+<span class="sec">## Task</span>
+Using the Figma MCP, read every variant, property, and layer of <span class="ph">COMPONENT_NAME</span>
+at <span class="ph">FIGMA_URL</span>. Generate complete component documentation.
+
+<span class="var">1. Component Overview</span>
+   Purpose: what does it do and when should it be used?
+   Component type: atomic / molecule / organism / template
+   Figma path: [component set path in the DS]
+
+<span class="var">2. Variant Inventory</span>
+   Table: Variant Property | Values | Visual Description | When to Use
+   List every variant combination with a plain-English description of what changes.
+   Flag any variant combinations that are invalid or discouraged.
+
+<span class="var">3. Properties / API</span>
+   For developer handoff — list every configurable property:
+   Property Name | Type | Default | Description
+   Mark properties that affect layout (size/spacing changes) vs. only visual.
+
+<span class="var">4. Usage Guidelines</span>
+   Do: [3–5 correct usage examples with context]
+   Don't: [3–5 anti-patterns with explanation of why]
+   Pairing rules: [what other components it works with / doesn't work with]
+
+<span class="var">5. Spacing &amp; Sizing</span>
+   Internal padding, gap values, min/max width/height.
+   How it behaves in a flex/grid container.
+   Truncation rules for text properties.
+
+<span class="var">6. Accessibility Notes</span>
+   ARIA role, required attributes, keyboard behavior.
+   Contrast ratio for each state (reference the color tokens used).
+
+<span class="var">7. Content Guidelines</span>
+   Character limits for each text property.
+   Tone guidance if applicable.
+
+<span class="cm">## Output</span>
+Save to: /design-system/docs/<span class="ph">COMPONENT_NAME</span>.md
+Can be added as a Figma description or published to Storybook.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Uses: Figma Console MCP · Run after component is finalized</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- D04: Design System Audit -->
+      <div class="card" data-section="design-figma" data-tags="Design System Audit,Figma,Tokens,Coverage,Designer,Figma MCP">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Design System Coverage Audit</div>
+            <div class="card-ver">D04 · v1.0</div>
+          </div>
+          <div class="card-desc">Audit a Figma design file against the design system to find coverage gaps, detached components, hardcoded values, and token drift. Run before handing designs to developers.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Design</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Figma MCP</span>
+            <span class="tag tag-output">Audit Report</span>
+            <span class="tag tag-cond">When DS exists</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D04 — Design System Coverage Audit</span>
+<span class="cm"># Tool: Claude Code + Figma Console MCP · Phase: Design → Spec</span>
+<span class="sec">## Inputs</span>
+<span class="ph">DESIGN_FILE_URL</span>: [Figma file or page URL to audit]
+<span class="ph">DS_LIBRARY_URL</span>: [Figma library file URL — the DS source of truth]
+<span class="ph">SCOPE</span>: [e.g. "All frames on page 3 — Homepage designs"]
+<span class="ph">PLATFORM</span>: [Sitecore / Salesforce / Shopify — for token mapping context]
+
+<span class="sec">## Task</span>
+Using the Figma MCP, compare <span class="ph">DESIGN_FILE_URL</span> against <span class="ph">DS_LIBRARY_URL</span>.
+Identify every place where the design deviates from or is not covered by the DS.
+
+<span class="var">1. Detached Components</span>
+   List every instance that was once a DS component but is now detached.
+   Per instance: frame name, component name, last known version.
+   Severity: High (core component) / Medium (molecule) / Low (utility).
+
+<span class="var">2. Hardcoded Values</span>
+   Colors not using DS color tokens: list value, location, nearest DS token.
+   Typography not using DS text styles: list font/size/weight, location, nearest DS style.
+   Spacing values not on the DS scale: list px value, location.
+
+<span class="var">3. Missing DS Components</span>
+   UI patterns in the design that the DS doesn't have components for.
+   For each: name, description, how many times it appears.
+   Recommendation: add to DS / build one-off / use existing component differently.
+
+<span class="var">4. Token Drift</span>
+   Any design tokens that are being used inconsistently or out-of-spec.
+   E.g. using primary-500 where semantic-action should be used.
+
+<span class="var">5. Remediation Priority List</span>
+   Ranked list of fixes: most impactful to least.
+   Quick fixes (swap to DS component): [list]
+   Design decisions needed (DS gap): [list]
+   Document as-is and accept (justified deviation): [list]
+
+<span class="var">6. Pre-Handoff Checklist</span>
+   [ ] Zero detached High-severity components
+   [ ] All colors using DS tokens
+   [ ] All type styles using DS text styles
+   [ ] Missing DS components flagged for DS team
+
+<span class="cm">## Output</span>
+Save to: /design-reviews/<span class="ph">SCOPE</span>-ds-audit-[date].md
+Block spec generation until High-severity detachments are resolved.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run before P01 · Prevents token drift in generated specs</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- D05: Interaction Pattern Documentation -->
+      <div class="card" data-section="design-figma" data-tags="Interaction Design,Micro-interactions,Animation,Motion,Developer Handoff,Designer,Figma MCP">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Interaction &amp; Motion Spec for Developer Handoff</div>
+            <div class="card-ver">D05 · v1.0</div>
+          </div>
+          <div class="card-desc">Document micro-interactions, transitions, and animation patterns from a Figma prototype into developer-ready specs. Turns prototype motion into implementable CSS/JS instructions with timing, easing, and trigger details.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Design</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Figma MCP</span>
+            <span class="tag tag-output">Motion Spec</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D05 — Interaction &amp; Motion Spec for Developer Handoff</span>
+<span class="cm"># Tool: Claude Code + Figma MCP · Phase: Design → Development</span>
+<span class="sec">## Inputs</span>
+<span class="ph">PROTOTYPE_URL</span>: [Figma prototype URL with interactions defined]
+<span class="ph">COMPONENT_SCOPE</span>: [which frames/components to document — e.g. "Navigation, Modal, Accordion"]
+<span class="ph">PLATFORM</span>: [Sitecore / Salesforce / Shopify — affects CSS/JS approach]
+<span class="ph">MOTION_LIBRARY</span>: [CSS only / Framer Motion / GSAP / None — project's animation stack]
+
+<span class="sec">## Task</span>
+Using the Figma MCP, read all interactions and transitions in <span class="ph">COMPONENT_SCOPE</span>.
+Translate each into developer-implementable specifications.
+
+<span class="var">For each interaction, document:</span>
+
+Trigger: [click / hover / focus / scroll / load / swipe]
+Target element: [element name from Figma layer]
+Animation type: [fade / slide / scale / rotate / color change / layout shift]
+Direction: [in / out / from top / from right / expand / collapse]
+Duration: [ms] — convert Figma's animation duration to milliseconds
+Easing: [ease-in / ease-out / ease-in-out / spring / custom cubic-bezier]
+Delay: [ms — if staggered]
+Trigger condition: [what state must be true for this to fire]
+Reverse: [does it animate back on trigger release?]
+
+<span class="var">CSS / JS implementation hint:</span>
+Translate to concrete implementation in <span class="ph">MOTION_LIBRARY</span>:
+- CSS only: provide transition / animation / @keyframes block
+- Framer Motion: provide animate / variants / transition props
+- GSAP: provide gsap.to() call with full parameters
+
+<span class="var">State Machine</span>
+For complex components (nav, modal, accordion, carousel):
+Draw the state machine: idle → hover → active → loading → complete → error
+Document what animation fires on each state transition.
+
+<span class="var">Reduced Motion</span>
+For every animation defined: what is the @media (prefers-reduced-motion) fallback?
+Never leave this blank. Minimum: instant transition with no easing.
+
+<span class="cm">## Output</span>
+Save to: /specs/interactions/<span class="ph">COMPONENT_SCOPE</span>-motion-spec.md
+Attach to Figma as a component description or dev mode annotation.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Uses: Figma MCP · Feeds into xcm-component-gen (P13/P14)</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ DESIGNER — PROTOTYPING & CONCEPTING ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Prototyping &amp; Concepting</div>
+          <span class="phase-badge tag tag-cond">Designer · Claude Code + Cursor</span>
+        </div>
+      </div>
+
+      <!-- D06: Rapid HTML Prototype -->
+      <div class="card" data-section="design-proto" data-tags="Prototype,HTML,Concept Code,Rapid,Designer,Claude Code,Cursor">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Rapid HTML Prototype from Design Brief</div>
+            <div class="card-ver">D06 · v1.1</div>
+          </div>
+          <div class="card-desc">Generate a working HTML/CSS/JS prototype directly from a design brief or Figma exploration. Used to validate UX hypotheses with stakeholders before investing in full Figma comp work.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Prototyping</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Claude Code</span>
+            <span class="tag tag-output">HTML Prototype</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D06 — Rapid HTML Prototype from Design Brief</span>
+<span class="cm"># Tool: Claude Code (or Claude.ai Artifact) · Phase: Prototyping</span>
+<span class="sec">## Inputs</span>
+<span class="ph">BRIEF</span>: [paste design brief excerpt, or describe the UX hypothesis to test]
+<span class="ph">FIGMA_URL</span>: [optional — reference frames if Figma explorations exist]
+<span class="ph">INTERACTION_FOCUS</span>: [what specific interaction to validate — e.g. "filtering pattern",
+                        "onboarding step flow", "search experience", "cart interaction"]
+<span class="ph">FIDELITY</span>: [Low (structure only) / Mid (realistic content + basic styles) / High (near-production)]
+<span class="ph">DS_TOKENS</span>: [optional — paste color/type tokens to keep it on-brand]
+
+<span class="sec">## Task</span>
+Build a working HTML prototype focused on <span class="ph">INTERACTION_FOCUS</span>.
+This is for stakeholder validation — prioritize the interaction being tested over pixel perfection.
+
+<span class="var">Structure</span>
+Single HTML file. Vanilla JS only — no frameworks.
+Realistic placeholder content (not "Lorem ipsum" — write plausible real content).
+<span class="kw">Do NOT reproduce Figma designs exactly.</span> Build the interaction hypothesis.
+
+<span class="var">Fidelity guidance</span>
+Low: wireframe-quality, grayscale, interaction logic only.
+     Focus: does the flow make sense?
+Mid: realistic colors from <span class="ph">DS_TOKENS</span> or sensible defaults, real-looking content.
+     Focus: does this feel right in context?
+High: production-quality styling, responsive, motion design.
+      Focus: is this ready for client presentation?
+
+<span class="var">Interaction requirements</span>
+Every interactive element must actually work — no dead links, no placeholder buttons.
+Include at least one error or edge case state.
+If testing a multi-step flow, all steps must be navigable.
+
+<span class="var">Prototype annotation</span>
+Include a collapsible panel or tooltip system that shows:
+- What hypothesis is being tested at each interaction point
+- What a "pass" looks like (user achieves goal)
+- What a "fail" looks like (user is confused or blocked)
+
+<span class="var">Cursor usage</span>
+If building in Cursor: save to /prototypes/<span class="ph">INTERACTION_FOCUS</span>/index.html.
+Cursor can iterate on this file with "refine the filter interaction" follow-up prompts.
+
+<span class="cm">## Output</span>
+Single HTML file: /prototypes/<span class="ph">INTERACTION_FOCUS</span>-prototype.html
+Include README section at top of file: hypothesis, test instructions, success criteria.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Build in Claude.ai Artifacts or Cursor · Iterate before full Figma comp</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- D07: Design Critique + Pre-Handoff Review -->
+      <div class="card" data-section="design-proto" data-tags="Design Critique,Review,Pre-Handoff,UX Review,Designer,Claude.ai,Figma MCP">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">AI Design Critique &amp; Pre-Handoff Review</div>
+            <div class="card-ver">D07 · v1.2</div>
+          </div>
+          <div class="card-desc">Run an AI-assisted design review before sending designs to spec. Evaluates against the design brief, UX principles, accessibility, and platform constraints. Catches issues before they become spec errors.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Design → Spec</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Figma MCP</span>
+            <span class="tag tag-output">Design Review</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D07 — AI Design Critique &amp; Pre-Handoff Review</span>
+<span class="cm"># Tool: Claude Code + Figma MCP · Phase: Design → Spec &amp; Generation</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FIGMA_URL</span>: [Figma frame(s) to review — link all breakpoints if responsive]
+<span class="ph">DESIGN_BRIEF</span>: /briefs/<span class="ph">PROJECT_NAME</span>-design-brief.md [from D01]
+<span class="ph">DESIGN_PRINCIPLES</span>: [paste 3–5 principles from the brief, or list key constraints]
+<span class="ph">PLATFORM</span>: [platform — for platform-specific feasibility checks]
+<span class="ph">REVIEW_TYPE</span>: [Full critique / UX only / Accessibility only / Platform feasibility only]
+
+<span class="sec">## Task</span>
+Using the Figma MCP, review <span class="ph">FIGMA_URL</span>.
+Be a critical and honest reviewer. The goal is to catch problems before they propagate into specs.
+
+<span class="var">1. Brief Alignment</span>
+   Does each design decision in the Figma serve the jobs-to-be-done in <span class="ph">DESIGN_BRIEF</span>?
+   List any design elements that seem misaligned with the brief.
+   What design decisions are not explained by the brief?
+
+<span class="var">2. UX Clarity &amp; Flow</span>
+   Primary action hierarchy: is the most important action the most visually prominent?
+   Information hierarchy: does the eye move in the right order?
+   Wayfinding: can a user tell where they are and what to do next?
+   Error prevention: are there states that will confuse users?
+   Flag each issue: [UX ISSUE: description] | Severity: Critical / Major / Minor
+
+<span class="var">3. Accessibility Pre-check</span>
+   (Applies accessibility-rules.md constraints)
+   Heading structure visible in the design.
+   Touch target sizes (minimum 44×44px on mobile).
+   Color contrast — flag any text/background combinations that look close to the 4.5:1 threshold.
+   States: are focus and hover states visible in the design?
+   Any interactive elements that will require complex ARIA?
+
+<span class="var">4. Platform Feasibility</span>
+   Given <span class="ph">PLATFORM</span>, flag anything that will be technically complex or impossible:
+   - Patterns that the platform's rendering model doesn't support natively
+   - Interactions that require custom development (not available in standard components)
+   - Content model implications: anything that looks editable but would require unusual CMS setup
+
+<span class="var">5. Missing States</span>
+   What states are not designed? (Loading, error, empty, max content, long text)
+   These will become [DESIGN GAP] flags in the spec — better to design them now.
+
+<span class="var">6. Verdict</span>
+   Ready for spec: Yes / No / Yes with caveats
+   Blocking issues (must resolve before spec): [list]
+   Non-blocking notes (address in this sprint): [list]
+   Deferred items (backlog): [list]
+
+<span class="cm">## Output</span>
+Save to: /design-reviews/<span class="ph">FIGMA_URL</span>-critique-[date].md
+Share with designer for resolution, then proceed to P01.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run before P01 · Reduces L1 validation failures downstream</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- D08: Responsive Layout Exploration via Cursor -->
+      <div class="card" data-section="design-proto" data-tags="Responsive,Layout,Breakpoints,Exploration,Designer,Cursor,Claude Code">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Responsive Layout Exploration in Cursor</div>
+            <div class="card-ver">D08 · v1.0</div>
+          </div>
+          <div class="card-desc">Use Cursor + Claude to rapidly generate and compare responsive layout variations for a component or page section. Faster than exploring in Figma for layout-heavy decisions. Outputs go back into Figma as reference.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Prototyping</span>
+            <span class="tag tag-phase" style="background:var(--pink-bg);color:var(--pink-text);border-color:var(--pink-border);">Designer</span>
+            <span class="tag tag-skill">Cursor</span>
+            <span class="tag tag-output">Layout Variants</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt D08 — Responsive Layout Exploration in Cursor</span>
+<span class="cm"># Tool: Cursor Agent · Phase: Prototyping → Design</span>
+<span class="sec">## Inputs</span>
+<span class="ph">COMPONENT</span>: [what you're exploring — e.g. "Card grid", "Hero section", "Filter + results layout"]
+<span class="ph">CONTENT_MODEL</span>: [what content needs to fit — list the actual content elements and rough volumes]
+<span class="ph">CONSTRAINTS</span>: [design constraints — e.g. "must work without JS", "Tailwind only",
+                  "max 3 columns", "sticky sidebar on desktop"]
+<span class="ph">DIRECTION_COUNT</span>: [how many layout directions to generate — recommend 3]
+<span class="ph">DS_TOKENS</span>: [paste color/spacing tokens for visual consistency]
+
+<span class="sec">## Task</span>
+In Cursor, generate <span class="ph">DIRECTION_COUNT</span> distinct layout approaches for <span class="ph">COMPONENT</span>.
+Each must genuinely solve the layout problem differently — not just minor variations.
+
+<span class="var">For each layout direction:</span>
+
+File: /prototypes/layouts/<span class="ph">COMPONENT</span>-direction-[N].html
+
+Name the approach (e.g. "Sidebar fixed", "Cards masonry", "Stacked progressive"):
+- Desktop (1440px): full layout
+- Tablet (768px): how it adapts — be specific about what moves
+- Mobile (375px): final mobile layout — not just "stack everything"
+
+<span class="kw">Rules:</span>
+- Tailwind CSS only (or paste specific <span class="ph">DS_TOKENS</span>)
+- Realistic content — use actual words from <span class="ph">CONTENT_MODEL</span>
+- Show at least one edge case: long title, missing image, empty state
+
+<span class="var">Comparison page:</span>
+File: /prototypes/layouts/<span class="ph">COMPONENT</span>-comparison.html
+Side-by-side view of all <span class="ph">DIRECTION_COUNT</span> approaches at each breakpoint.
+Add decision labels: What problem does each approach solve best?
+
+<span class="var">Cursor iteration loop:</span>
+After generating, iterate with:
+"Direction 2 feels right but the mobile stacking is wrong — make the title come first, then the image."
+"Combine the sidebar approach from Direction 1 with the card style from Direction 3."
+
+<span class="var">Back to Figma:</span>
+Once a direction is chosen, use D03 (Figma Component Auto-Doc) to
+capture the chosen approach as Figma component specs.
+Screenshot the chosen prototype frame as a Figma cover reference.
+
+<span class="cm">## Output</span>
+/prototypes/layouts/<span class="ph">COMPONENT</span>-direction-[1/2/3].html
+/prototypes/layouts/<span class="ph">COMPONENT</span>-comparison.html
+Decision captured in: /briefs/<span class="ph">PROJECT_NAME</span>-layout-decisions.md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run in Cursor Agent mode · Iterate before committing to Figma</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ SPEC & GENERATION ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Spec &amp; Generation</div>
+          <span class="phase-badge tag tag-skill">Core phase</span>
+        </div>
+      </div>
+
+      <!-- P01: Functional Spec -->
+      <div class="card" data-section="spec" data-tags="Functional Spec,Figma,All Platforms,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Functional Specification Generator</div>
+            <div class="card-ver">P01 · v2.1</div>
+          </div>
+          <div class="card-desc">Translate a Figma design into a complete, platform-agnostic functional spec. Run this first — always — before any technical spec or story generation.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-output">Functional Spec</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P01 — Functional Specification Generator</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FIGMA_URL</span>: [paste Figma frame or component URL]
+<span class="ph">COMPONENT_NAME</span>: [e.g. "Hero Banner", "Product Card", "Navigation"]
+<span class="ph">PAGE_CONTEXT</span>: [e.g. "Homepage", "Product Detail Page", "Checkout"]
+<span class="ph">PLATFORM</span>: [Sitecore XM Cloud / Salesforce / Shopify / Headless]
+<span class="ph">PROJECT_NOTES</span>: [any known constraints or client-specific patterns]
+
+<span class="sec">## Task</span>
+<span class="kw">Using the Figma MCP</span>, examine every layer of the design at <span class="ph">FIGMA_URL</span>. 
+Produce a complete Functional Specification for <span class="ph">COMPONENT_NAME</span>.
+
+Apply the xcm-spec-generator skill. Structure the output exactly as:
+
+<span class="var">1. Overview</span>
+   - Purpose (one sentence, user-centric)
+   - Business objective (what KPI this drives)
+   - Page context and placement
+
+<span class="var">2. User Interactions</span>
+   Document every clickable, tappable, hoverable, or form element.
+   Include loading, error, and empty states.
+   If Figma does not show a state, flag it explicitly: [DESIGN GAP: no error state shown].
+
+<span class="var">3. Content Model</span>
+   Table: Field | Type | CMS-Editable | Constraints
+   Only document fields visible in the Figma. 
+   If a common field seems missing, note it as [RECOMMEND ADDING] — do not include as spec.
+
+<span class="var">4. Responsive Behavior</span>
+   Desktop (1440px+), Tablet (768–1439px), Mobile (&lt;768px).
+   Describe what reorders, hides, resizes, or changes interaction pattern at each breakpoint.
+   "Responsive" is not an answer. Be specific.
+
+<span class="var">5. Accessibility Requirements</span>
+   Heading level, ARIA roles, keyboard tab order, screen reader announcement order.
+   Flag any color contrast areas that need WCAG AA verification.
+
+<span class="var">6. Edge Cases</span>
+   Maximum content, minimum content, missing images, long headlines.
+
+<span class="var">7. Dependencies &amp; Design Gaps</span>
+   APIs, related components, and an explicit list of anything Figma doesn't show.
+
+<span class="cm">## Output</span>
+Save to: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+Immediately proceed to Layer 1 validation (P09) unless instructed otherwise.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Uses: Figma MCP · xcm-spec-generator · xcm-validation</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P02: Sitecore Tech Spec -->
+      <div class="card" data-section="spec" data-tags="Technical Spec,Sitecore,Sitecore XM Cloud,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Sitecore XM Cloud — Technical Specification</div>
+            <div class="card-ver">P02 · v2.3</div>
+          </div>
+          <div class="card-desc">Generate a complete Sitecore XM Cloud technical spec from a functional spec. Includes data template, JSS TypeScript interface, rendering parameters, and SCS YAML.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-plat">Sitecore XM Cloud</span>
+            <span class="tag tag-output">Technical Spec</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P02 — Sitecore XM Cloud Technical Specification</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">FIGMA_URL</span>: [Figma frame URL for visual reference]
+<span class="ph">PROJECT_NAME</span>: [e.g. "AcmeCorp", used in template paths]
+<span class="ph">PLATFORM_CONSTRAINTS</span>: /prompt-library/constraints/sitecore-xm-cloud.md
+
+<span class="sec">## Task</span>
+Read <span class="ph">FUNCTIONAL_SPEC</span>. Apply the xcm-spec-generator skill (Sitecore XM Cloud path).
+Apply all constraints in <span class="ph">PLATFORM_CONSTRAINTS</span>.
+
+Produce:
+
+<span class="var">1. Component Architecture</span>
+   - Component name (PascalCase)
+   - File: /src/sitecore/components/[Name].tsx
+   - Placeholder usage, datasource requirement
+
+<span class="var">2. Data Template</span>
+   - Path: /sitecore/templates/Project/<span class="ph">PROJECT_NAME</span>/Components/[Name]
+   - Fields table: Name | Field Type | Shared | Source | Required | Standard Value
+   <span class="kw">CRITICAL:</span> Use only valid XM Cloud field types. Do NOT use Memo, Html, Custom.
+   Valid types: Single-Line Text, Multi-Line Text, Rich Text, Image, File, 
+   General Link, Droptree, Droplink, Multilist, Treelist, Checkbox, Date, 
+   Datetime, Number, Integer, Name Value List.
+
+<span class="var">3. Rendering Parameters</span>
+   Table: Parameter | Type | Options | Default | Purpose
+   All rendering parameter values must be string type.
+
+<span class="var">4. TypeScript Props Interface</span>
+   Import from @sitecore-jss/sitecore-jss-nextjs.
+   Use ComponentProps from lib/component-props.
+   Include typed fields and params.
+
+<span class="var">5. SCS YAML</span>
+   Template item YAML + rendering item YAML for Sitecore Content Serialization.
+
+<span class="var">6. Caching Strategy</span>
+   Cacheable yes/no, vary-by options, and rationale.
+
+<span class="var">7. Content Author Experience</span>
+   Inline editing fields, datasource dialog field order, Experience Editor notes.
+
+<span class="cm">## Output</span>
+Save to: /specs/technical/<span class="ph">COMPONENT_NAME</span>-sitecore-spec.md
+Flag any field names that need confirmation from the Sitecore item template.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 complete · sitecore-xm-cloud.md constraint</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P03: Salesforce Tech Spec -->
+      <div class="card" data-section="spec" data-tags="Technical Spec,Salesforce,LWC,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Salesforce — LWC Technical Specification</div>
+            <div class="card-ver">P03 · v2.1</div>
+          </div>
+          <div class="card-desc">Generate a Salesforce LWC + Apex technical spec from a functional spec. Covers data model, component files, security model, and Experience Cloud config.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-plat">Salesforce</span>
+            <span class="tag tag-output">Technical Spec</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P03 — Salesforce LWC Technical Specification</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">SF_CLOUD</span>: [Sales Cloud / Service Cloud / Experience Cloud]
+<span class="ph">CLIENT_ORG_SCHEMA</span>: [paste relevant object/field API names, or note "TBD — confirm with client"]
+<span class="ph">PLATFORM_CONSTRAINTS</span>: /prompt-library/constraints/salesforce-conventions.md
+
+<span class="sec">## Task</span>
+Read <span class="ph">FUNCTIONAL_SPEC</span>. Apply xcm-spec-generator skill (Salesforce path).
+Apply all constraints in <span class="ph">PLATFORM_CONSTRAINTS</span>.
+
+<span class="kw">Governor limit rules (non-negotiable):</span>
+- No SOQL inside for loops — ever.
+- All DML in try/catch with meaningful error messages.
+- Use @wire adapters before writing imperative Apex.
+- All Apex must have a paired [ClassName]Test.cls.
+
+Produce:
+
+<span class="var">1. Component Architecture</span>
+   - LWC name (camelCase), location, parent/child relationship
+   - Component files: .html / .js / .css / .js-meta.xml
+
+<span class="var">2. Data Model</span>
+   Custom objects table (if needed): Object | API Name | Purpose
+   Fields table: Object | Label | API Name | Type | Required | Notes
+   <span class="kw">Do NOT invent API names.</span> If <span class="ph">CLIENT_ORG_SCHEMA</span> is TBD, list as 
+   [CONFIRM: field_name__c description] throughout.
+
+<span class="var">3. JavaScript Controller Outline</span>
+   @api props, @wire adapters or imperative calls, event handlers, lifecycle hooks.
+
+<span class="var">4. Apex Controller</span>
+   (If SOQL or DML is needed)
+   Class name, @AuraEnabled methods with param/return types, queries, DML.
+
+<span class="var">5. Security Model</span>
+   CRUD requirements, FLS, OWD + sharing rules, guest user access (if Experience Cloud).
+
+<span class="var">6. Experience Cloud Config</span>
+   (If applicable) Page type, visibility rules, property editor parameters.
+
+<span class="cm">## Output</span>
+Save to: /specs/technical/<span class="ph">COMPONENT_NAME</span>-salesforce-spec.md
+Flag all API names marked [CONFIRM] for client verification before development.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 complete · salesforce-conventions.md constraint</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P04: Shopify Spec -->
+      <div class="card" data-section="spec" data-tags="Technical Spec,Shopify,Liquid,Hydrogen,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Shopify — OS 2.0 / Hydrogen Technical Specification</div>
+            <div class="card-ver">P04 · v1.2</div>
+          </div>
+          <div class="card-desc">Generate a Shopify technical spec for Online Store 2.0 Liquid sections or Hydrogen React components. Covers schema JSON, section/block structure, and Storefront API GraphQL.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-plat">Shopify</span>
+            <span class="tag tag-output">Technical Spec</span>
+            <span class="tag tag-cond">Conditional</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P04 — Shopify Technical Specification</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">SHOPIFY_TYPE</span>: [OS 2.0 (Liquid) / Hydrogen (React + GraphQL)]
+<span class="ph">METAFIELD_NAMESPACES</span>: [paste from Shopify admin, or "TBD — confirm with client"]
+
+<span class="sec">## Task — OS 2.0 (Liquid)</span>
+Produce:
+- Section Liquid file with full {% schema %} block (settings + blocks + presets)
+- Snippet dependencies list
+- All user-facing strings using {{ 'key' | t }} — no hardcoded copy
+- CSS scoped to .section-{{ section.id }}
+- Image renders using Shopify CDN with explicit size params
+
+<span class="sec">## Task — Hydrogen (React)</span>
+Produce:
+- Component file: /app/components/[ComponentName].tsx
+- GraphQL fragment in /app/lib/fragments.ts (request only required fields — no over-fetching)
+- Loader strategy: server-side only, no client-side Storefront API calls
+- Remix routing if page-level: /app/routes/[route].tsx
+
+<span class="var">Both paths include:</span>
+- Content editability table (what merchants can configure)
+- Performance notes (image optimization, no blocking scripts)
+- Metafield usage: <span class="ph">METAFIELD_NAMESPACES</span> 
+  <span class="kw">Do NOT invent namespace/key pairs.</span> Flag any TBD as [CONFIRM: namespace.key].
+
+<span class="cm">## Output</span>
+Save to: /specs/technical/<span class="ph">COMPONENT_NAME</span>-shopify-spec.md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 complete · Shopify admin access for metafields</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P05: Optimizely Spec -->
+      <div class="card" data-section="spec" data-tags="Technical Spec,Optimizely,CMS 12,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Optimizely CMS 12 — Technical Specification</div>
+            <div class="card-ver">P05 · v1.1</div>
+          </div>
+          <div class="card-desc">Generate an Optimizely CMS 12 technical spec. Covers C# content type classes, feature folder architecture, and controller/ViewModel patterns.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-plat">Optimizely</span>
+            <span class="tag tag-output">Technical Spec</span>
+            <span class="tag tag-cond">Conditional</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P05 — Optimizely CMS 12 Technical Specification</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">OPT_TYPE</span>: [Page / Block / Media type]
+<span class="ph">FEATURE_FOLDER</span>: [e.g. "Features/ProductCard"]
+
+<span class="sec">## Task</span>
+Apply xcm-spec-generator skill (Optimizely path).
+
+Produce:
+
+<span class="var">1. Content Type Class</span>
+   - Location: /Models/Pages or /Models/Blocks or /Models/Media
+   - [ContentType] attribute with unique GUID (generate a new one)
+   - Base class: PageData / BlockData / ImageData
+   - All properties with [Display] attribute for editor labels
+   - Use EPiServer.Core types — never raw C# primitives for content
+
+<span class="var">2. Feature Folder Structure</span>
+   <span class="ph">FEATURE_FOLDER</span>/{Controller, ViewModel, Views/Index.cshtml}
+   - Controller: async actions, no logic in views
+   - ViewModel: maps content type properties to view-safe shapes
+   - View: tag helpers only, no business logic
+
+<span class="var">3. IContentRepository Usage</span>
+   All content reads via IContentRepository — no direct DB access.
+   Scheduled jobs if needed: ScheduledJobBase + [ScheduledPlugIn] attribute.
+
+<span class="var">4. C# Standards</span>
+   Nullable reference types enabled.
+   Async/await for all controller actions.
+   No magic strings — nameof() or constants.
+
+<span class="cm">## Output</span>
+Save to: /specs/technical/<span class="ph">COMPONENT_NAME</span>-optimizely-spec.md
+<span class="kw">CRITICAL:</span> Never reuse GUIDs from other components. Generate a unique GUID for each content type.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 complete</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P06: Headless Spec -->
+      <div class="card" data-section="spec" data-tags="Technical Spec,Headless,Custom Stack,xcm-spec-generator">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Headless / Custom Stack — Technical Specification</div>
+            <div class="card-ver">P06 · v1.0</div>
+          </div>
+          <div class="card-desc">Platform-agnostic technical spec template for headless or custom stacks. Uses placeholders populated from CLAUDE.md at project kickoff. Works with Contentful, Storyblok, Sanity, and any custom API.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-spec-generator</span>
+            <span class="tag tag-plat">Headless</span>
+            <span class="tag tag-output">Technical Spec</span>
+            <span class="tag tag-cond">Fill placeholders at kickoff</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P06 — Headless / Custom Stack Technical Specification</span>
+<span class="cm"># Fill orange placeholders in CLAUDE.md at project kickoff.</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">CLAUDE_MD</span>: CLAUDE.md [must be populated with platform specifics]
+<span class="ph">CMS_NAME</span>: [e.g. Contentful, Storyblok, Sanity, custom API]
+<span class="ph">FRAMEWORK</span>: [e.g. Next.js 14 App Router, Nuxt 3, Remix]
+<span class="ph">CONTENT_TYPE_SCHEMA</span>: [paste from CMS content model, or "TBD"]
+
+<span class="sec">## Task</span>
+Read <span class="ph">FUNCTIONAL_SPEC</span> and the platform section of CLAUDE.md.
+Produce a technical spec adapted for <span class="ph">CMS_NAME</span> + <span class="ph">FRAMEWORK</span>.
+
+<span class="var">1. Component Architecture</span>
+   File location per project structure in CLAUDE.md.
+   Server vs. client component determination (SSR/SSG/ISR rationale).
+
+<span class="var">2. CMS Content Model Mapping</span>
+   Map each functional spec field to a CMS field type.
+   <span class="kw">Do NOT invent field names.</span> Use only fields from <span class="ph">CONTENT_TYPE_SCHEMA</span>.
+   Mark any TBD fields as [CONFIRM: field description].
+
+<span class="var">3. Data Fetching</span>
+   All CMS queries in /lib/cms.ts — no inline fetches in components.
+   GraphQL fragment or REST query shape (request minimum fields).
+
+<span class="var">4. TypeScript</span>
+   Types generated from CMS schema — do not hand-write.
+   Strict mode, no implicit any.
+
+<span class="var">5. Styling</span>
+   Per CLAUDE.md conventions. Token mapping if design system present.
+
+<span class="cm">## Output</span>
+Save to: /specs/technical/<span class="ph">COMPONENT_NAME</span>-headless-spec.md
+This spec feeds directly into xcm-component-gen (P13/P14).</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 complete · CLAUDE.md platform section populated</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ STORIES & QA ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">User Stories &amp; QA Narratives</div>
+          <span class="phase-badge tag tag-output">Spec &amp; Generation → Handoff</span>
+        </div>
+      </div>
+
+      <!-- P07: User Stories -->
+      <div class="card" data-section="stories" data-tags="User Stories,JTBD,Acceptance Criteria,xcm-user-stories">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">JTBD-Hybrid User Stories Generator</div>
+            <div class="card-ver">P07 · v3.2</div>
+          </div>
+          <div class="card-desc">Generate sprint-ready user stories with JTBD framing and full Given/When/Then acceptance criteria. Output is formatted for Jira import and offshore execution without follow-up questions.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">xcm-user-stories</span>
+            <span class="tag tag-output">User Stories</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P07 — JTBD User Stories Generator</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">TECHNICAL_SPEC</span>: /specs/technical/<span class="ph">COMPONENT_NAME</span>-[platform]-spec.md
+<span class="ph">PLATFORM</span>: [platform name for technical context]
+<span class="ph">SPRINT_GOAL</span>: [e.g. "Complete Hero Banner for Homepage sprint 3"]
+
+<span class="sec">## Task</span>
+Apply the xcm-user-stories skill.
+
+For each user-facing feature in <span class="ph">FUNCTIONAL_SPEC</span>:
+
+<span class="var">Story Format</span>
+When [I am doing / trying to accomplish] {job-to-be-done},
+I want {feature or interaction},
+So that {outcome / progress made}.
+
+<span class="var">Acceptance Criteria Format (Given/When/Then)</span>
+Given I am on [desktop/tablet/mobile] and [context/state],
+When I [action],
+Then [expected result / system response].
+
+<span class="kw">Rules:</span>
+- Every AC must specify breakpoint (desktop/tablet/mobile) — never omit.
+- Each story must be independently testable.
+- Stories must not contain implementation details — describe behavior, not code.
+- Include story for: happy path, error state, empty state, max content scenario.
+- Estimate complexity: XS / S / M / L / XL with brief rationale.
+- Flag dependencies: "[Blocked by: {story title}]".
+
+<span class="var">Technical Notes Section</span> (per story, if needed)
+Reference <span class="ph">TECHNICAL_SPEC</span> to add implementation hints for offshore:
+platform-specific patterns, field names, component registration path.
+
+<span class="cm">## Output</span>
+Format as Markdown table: Story | JTBD Frame | Acceptance Criteria | Size | Dependencies
+Save to: /stories/<span class="ph">COMPONENT_NAME</span>-stories.md
+Stories are ready for Jira import after onshore review.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P01 + P02/03/04/05/06 complete</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P08: QA Narratives -->
+      <div class="card" data-section="stories" data-tags="QA Narratives,Quality Assurance,qa-handoff">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">QA Narrative Generator</div>
+            <div class="card-ver">P08 · v2.4</div>
+          </div>
+          <div class="card-desc">Generate experiential QA narratives that evaluate experience quality — not just functional pass/fail. Covers feel, flow, and the human experience of using the component.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">qa-handoff</span>
+            <span class="tag tag-output">QA Narratives</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P08 — QA Narrative Generator</span>
+<span class="sec">## Inputs</span>
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">USER_STORIES</span>: /stories/<span class="ph">COMPONENT_NAME</span>-stories.md
+<span class="ph">FIGMA_URL</span>: [Figma URL — for visual reference]
+<span class="ph">PRIMARY_USER</span>: [e.g. "returning customer", "admin user", "first-time visitor"]
+
+<span class="sec">## Task</span>
+Apply the qa-handoff skill. Generate two narrative types:
+
+<span class="var">1. Functional QA Scenarios</span>
+   For each story in <span class="ph">USER_STORIES</span>:
+   - Happy path walkthrough (first-person, step by step)
+   - Error path walkthrough
+   - Edge case scenario
+   - Browser/device matrix: Chrome, Safari, Firefox / Desktop, Tablet, Mobile
+   - Accessibility check: keyboard-only, screen reader (NVDA/VoiceOver)
+
+<span class="var">2. Experiential QA Narrative</span>
+   Written as a first-person experience story from <span class="ph">PRIMARY_USER</span>'s perspective.
+   Evaluate: Does this feel right? Is the experience coherent?
+   
+   Dimensions to address:
+   - First impression: is the visual hierarchy immediately clear?
+   - Interaction quality: do interactions feel responsive and predictable?
+   - Content readability: does content scan well at real content lengths?
+   - Emotional experience: anxiety/friction moments vs. confidence/clarity moments
+   - Mobile experience: is the touch experience comfortable?
+   - Performance feel: does it feel fast, even if technically performant?
+   
+   <span class="kw">Format as narrative prose, not a checklist.</span>
+   Flag any experiential gaps as: [EXPERIENCE GAP: description].
+
+<span class="var">3. n8n Webhook Payload</span>
+   JSON structure for automated QA dispatch:
+   { component, sprint, stories: [], scenarios: [], experiential_gaps: [], assignee }
+
+<span class="cm">## Output</span>
+Save to: /qa/<span class="ph">COMPONENT_NAME</span>-qa-package.md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P07 complete</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P09: Acceptance Criteria Deep Dive -->
+      <div class="card" data-section="stories" data-tags="Acceptance Criteria,QA,Responsive,xcm-user-stories">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Responsive Acceptance Criteria Expander</div>
+            <div class="card-ver">P09 · v1.3</div>
+          </div>
+          <div class="card-desc">Expand existing acceptance criteria to include explicit breakpoint, device, and browser coverage. Resolves the most common offshore ambiguity — testing only desktop.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Stories &amp; QA</span>
+            <span class="tag tag-skill">xcm-user-stories</span>
+            <span class="tag tag-output">Acceptance Criteria</span>
+            <span class="tag tag-cond">Use when ACs lack breakpoint specificity</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P09 — Responsive Acceptance Criteria Expander</span>
+<span class="sec">## Inputs</span>
+<span class="ph">EXISTING_STORIES</span>: /stories/<span class="ph">COMPONENT_NAME</span>-stories.md
+<span class="ph">FUNCTIONAL_SPEC</span>: /specs/functional/<span class="ph">COMPONENT_NAME</span>-functional-spec.md
+<span class="ph">BROWSER_MATRIX</span>: [default: Chrome, Safari, Firefox, Edge / or paste client-specific matrix]
+
+<span class="sec">## Task</span>
+Review each acceptance criterion in <span class="ph">EXISTING_STORIES</span>.
+For any AC that does not explicitly specify breakpoint (desktop/tablet/mobile):
+
+1. Expand into three separate ACs — one per breakpoint.
+2. Reference the responsive behavior in <span class="ph">FUNCTIONAL_SPEC</span> for accuracy.
+3. If behavior is identical across breakpoints, note: "[Identical across breakpoints — single test covers all]" — do not expand.
+
+<span class="var">Breakpoint definitions</span>
+Desktop: 1440px+ viewport, mouse/keyboard input
+Tablet: 768–1439px viewport, touch + keyboard  
+Mobile: &lt;768px viewport, touch only
+
+<span class="var">Browser matrix expansion</span>
+For ACs involving CSS layout, animation, or form inputs:
+Add browser-specific test notes per <span class="ph">BROWSER_MATRIX</span>.
+
+<span class="var">Output format per AC</span>
+STORY ID | BREAKPOINT | BROWSER | Given ... When ... Then ...
+
+<span class="cm">## Output</span>
+Append expanded ACs to: /stories/<span class="ph">COMPONENT_NAME</span>-stories.md
+Log any ambiguities as [AC GAP: story id — description].</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P07 complete · Run before offshore handoff</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ VALIDATION ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Validation — 3 Layers</div>
+          <span class="phase-badge tag tag-skill">xcm-validation · Run in sequence</span>
+        </div>
+      </div>
+
+      <!-- P10: Layer 1 -->
+      <div class="card" data-section="validation" data-tags="Validation,Layer 1,Spec Accuracy,xcm-validation">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Layer 1 — Spec Accuracy Validation</div>
+            <div class="card-ver">P10 · v1.4</div>
+          </div>
+          <div class="card-desc">Validate a generated spec against Figma before it feeds downstream. Catches hallucinated fields, missed states, wrong field types. Run immediately after P01/P02/P03.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Validation</span>
+            <span class="tag tag-skill">xcm-validation</span>
+            <span class="tag tag-output">L1 Report</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P10 — Layer 1: Spec Accuracy Validation</span>
+<span class="sec">## Inputs</span>
+<span class="ph">SPEC_PATH</span>: /specs/[functional|technical]/<span class="ph">COMPONENT_NAME</span>-spec.md
+<span class="ph">FIGMA_URL</span>: [Figma frame URL — single source of truth]
+<span class="ph">PLATFORM_CONSTRAINTS</span>: /prompt-library/constraints/[platform].md
+
+<span class="sec">## Task</span>
+Apply xcm-validation Layer 1. Using the Figma MCP, compare <span class="ph">SPEC_PATH</span> against <span class="ph">FIGMA_URL</span>.
+
+Check each dimension and produce a Pass / Flag / Fail result:
+
+<span class="var">1. Content Completeness</span>
+   - Every text element in Figma has a spec field.
+   - Every image/icon/media is documented.
+   - No fields in spec that don't exist in Figma. [HALLUCINATION CHECK]
+   - Dynamic vs. static content correctly categorized.
+
+<span class="var">2. Interaction Accuracy</span>
+   - Every interactive element has documented behavior.
+   - Hover/focus/active states match Figma (or flagged as gaps).
+   - Form validation rules are present.
+
+<span class="var">3. State Coverage</span>
+   - Loading state: present or [GAP: needs design].
+   - Error state: present or [GAP: needs design].
+   - Empty state: present or [GAP: needs design].
+   - Max/min content scenarios present.
+
+<span class="var">4. Responsive Behavior</span>
+   - Desktop, tablet, mobile specified with specific layout descriptions.
+   - Not just "responsive" — actual behavioral changes documented.
+
+<span class="var">5. Platform Accuracy</span> (apply <span class="ph">PLATFORM_CONSTRAINTS</span>)
+   - No deprecated patterns.
+   - Field types valid for platform.
+   - No deprecated APIs referenced.
+
+<span class="var">Report Format</span>
+DIMENSION | STATUS | FINDING | RECOMMENDED FIX
+Use: ✓ Pass | ⚠ Flag (non-blocking) | ✗ Fail (blocks next step)
+
+<span class="kw">The spec must pass Layer 1 before proceeding to P07 or P13.</span>
+Any ✗ Fail items must be corrected and re-validated.
+
+<span class="cm">## Output</span>
+Save to: /validation/L1-<span class="ph">COMPONENT_NAME</span>-[date].md
+If issues found: log root cause for prompt-iteration (P19).</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Gates: P07 Stories · P13/P14 Component Gen</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P11: Layer 2 -->
+      <div class="card" data-section="validation" data-tags="Validation,Layer 2,Visual Fidelity,xcm-validation">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Layer 2 — Visual Fidelity Validation</div>
+            <div class="card-ver">P11 · v1.3</div>
+          </div>
+          <div class="card-desc">Validate an implemented component against the Figma design. Catches layout drift, typography mismatches, spacing errors. Run after offshore delivers implementation.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Validation</span>
+            <span class="tag tag-skill">xcm-validation</span>
+            <span class="tag tag-output">L2 Report</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P11 — Layer 2: Visual Fidelity Validation</span>
+<span class="sec">## Inputs</span>
+<span class="ph">COMPONENT_URL</span>: [Storybook / staging URL of implemented component]
+<span class="ph">FIGMA_URL</span>: [Figma frame — design source of truth]
+<span class="ph">BREAKPOINTS</span>: [1440, 1024, 768, 375 — or specify per project]
+<span class="ph">DS_TOKENS</span>: /prompt-library/constraints/design-tokens.md [if design system in use]
+
+<span class="sec">## Task</span>
+Apply xcm-validation Layer 2. Compare implementation at <span class="ph">COMPONENT_URL</span> against <span class="ph">FIGMA_URL</span> at each breakpoint in <span class="ph">BREAKPOINTS</span>.
+
+For each breakpoint, check:
+
+<span class="var">Layout &amp; Spacing</span>
+- Column structure matches Figma grid.
+- Padding/margin values match Figma specs or design tokens.
+- Component proportions preserved at all breakpoints.
+- Element order matches Figma (especially on mobile reflow).
+
+<span class="var">Typography</span>
+- Font family, size, weight, line-height match design.
+- Text truncation behavior matches spec.
+- Long content wraps correctly without breaking layout.
+
+<span class="var">Color &amp; Visual Treatment</span>
+- Colors match design tokens or Figma color values.
+- Hover/focus states implemented.
+- Images use correct aspect ratios and fit modes.
+
+<span class="var">Design System Fidelity</span> (if <span class="ph">DS_TOKENS</span> provided)
+- Token drift: any hardcoded values where tokens should be used?
+- Non-DS patterns introduced?
+
+<span class="var">Report Format</span>
+BREAKPOINT | DIMENSION | FINDING | SEVERITY | FIGMA REFERENCE
+Severity: Critical (blocks sign-off) | Major (should fix this sprint) | Minor (next sprint)
+
+<span class="cm">## Output</span>
+Save to: /validation/L2-<span class="ph">COMPONENT_NAME</span>-[date].md
+All Critical items must be resolved before Layer 3.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: Implementation delivered · Runs after offshore build</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P12: Layer 3 -->
+      <div class="card" data-section="validation" data-tags="Validation,Layer 3,Experiential,xcm-validation">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Layer 3 — Experiential Quality Validation</div>
+            <div class="card-ver">P12 · v1.2</div>
+          </div>
+          <div class="card-desc">Evaluate the live implementation's experience quality — not just visual correctness. Performance feel, interaction quality, content flow, emotional resonance. The "does this feel right?" check.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Validation</span>
+            <span class="tag tag-skill">xcm-validation</span>
+            <span class="tag tag-output">L3 Report</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P12 — Layer 3: Experiential Quality Validation</span>
+<span class="sec">## Inputs</span>
+<span class="ph">COMPONENT_URL</span>: [staging / preview URL]
+<span class="ph">QA_NARRATIVE</span>: /qa/<span class="ph">COMPONENT_NAME</span>-qa-package.md (experiential narrative section)
+<span class="ph">PRIMARY_USER</span>: [user persona — e.g. "first-time visitor", "returning customer"]
+<span class="ph">L2_REPORT</span>: /validation/L2-<span class="ph">COMPONENT_NAME</span>-[date].md [must show no Critical items]
+
+<span class="sec">## Task</span>
+Apply xcm-validation Layer 3. With <span class="ph">L2_REPORT</span> showing all Critical issues resolved,
+evaluate the experience at <span class="ph">COMPONENT_URL</span> against the experiential narrative in <span class="ph">QA_NARRATIVE</span>.
+
+<span class="var">1. First Impression</span>
+   As <span class="ph">PRIMARY_USER</span>, is the visual hierarchy immediately clear?
+   Is the primary action obvious without scanning?
+
+<span class="var">2. Interaction Quality</span>
+   Do interactive elements respond at the expected moment?
+   Are transitions smooth or jarring?
+   Does the component telegraph what it does before you interact?
+
+<span class="var">3. Content at Scale</span>
+   Test with: max-length content, min-length content, missing optional fields.
+   Does the layout degrade gracefully or break?
+
+<span class="var">4. Mobile Experience</span>
+   Touch targets: minimum 44×44px?
+   Thumb reach: primary actions in the bottom 2/3 of screen?
+   Text readable without zoom?
+
+<span class="var">5. Emotional Experience</span>
+   Anxiety moments: anything unclear, hidden, or that creates friction?
+   Confidence moments: clear feedback, expected outcomes?
+   Compare against experiential gaps flagged in <span class="ph">QA_NARRATIVE</span>.
+
+<span class="var">6. Performance Feel</span>
+   Does it feel fast? (Not just Lighthouse score — perceived performance)
+   CLS: does layout shift on load?
+   Image loading: placeholder → loaded transition graceful?
+
+<span class="var">Report Format</span>
+Written as prose evaluation + priority punch list.
+End with: SIGN OFF: Yes / No — with explicit conditions if No.
+
+<span class="cm">## Output</span>
+Save to: /validation/L3-<span class="ph">COMPONENT_NAME</span>-[date].md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P11 all Critical resolved · Final gate before done</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ COMPONENT GENERATION ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Component Generation</div>
+          <span class="phase-badge tag tag-plat">Development phase</span>
+        </div>
+      </div>
+
+      <!-- P13: Sitecore Component Gen -->
+      <div class="card" data-section="components" data-tags="Component Generation,Sitecore,JSS,TypeScript,xcm-component-gen">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Sitecore JSS Component Scaffold</div>
+            <div class="card-ver">P13 · v2.0</div>
+          </div>
+          <div class="card-desc">Generate a complete Sitecore XM Cloud JSS component from a validated technical spec. Outputs TypeScript component, SCS YAML, and Storybook story.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Development</span>
+            <span class="tag tag-skill">xcm-component-gen</span>
+            <span class="tag tag-plat">Sitecore XM Cloud</span>
+            <span class="tag tag-output">JSS Component</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P13 — Sitecore JSS Component Scaffold</span>
+<span class="sec">## Inputs</span>
+<span class="ph">TECH_SPEC</span>: /specs/technical/<span class="ph">COMPONENT_NAME</span>-sitecore-spec.md
+<span class="ph">L1_REPORT</span>: /validation/L1-<span class="ph">COMPONENT_NAME</span>-[date].md [must show all Pass]
+<span class="ph">FIGMA_URL</span>: [Figma frame URL — for final visual reference]
+
+<span class="sec">## Task</span>
+Apply xcm-component-gen skill (Sitecore JSS path).
+<span class="ph">L1_REPORT</span> must show no Fail items before generating.
+
+Generate:
+
+<span class="var">1. Component File</span>
+   /src/sitecore/components/<span class="ph">COMPONENT_NAME</span>.tsx
+   - Full TypeScript, strict mode, no implicit any
+   - All fields via JSS helpers (Text, Image, RichText, Link) — never direct field access
+   - Rendering parameters destructured from params
+   - withSitecoreContext HOC or useSitecoreContext hook
+   - Experience Editor compatible
+
+<span class="var">2. TypeScript Interface File</span>
+   /src/types/<span class="ph">COMPONENT_NAME</span>Props.ts
+   - Import field types from @sitecore-jss/sitecore-jss-nextjs
+   - Extends ComponentProps
+
+<span class="var">3. Styles</span>
+   Tailwind classes only — no inline styles.
+   Spacing values map to design tokens in tailwind.config.ts.
+
+<span class="var">4. SCS YAML</span>
+   Template item YAML + rendering item YAML per <span class="ph">TECH_SPEC</span>.
+
+<span class="var">5. Storybook Story</span>
+   Default story with mock Sitecore context and all field variants.
+
+<span class="var">6. Component Factory Registration</span>
+   Entry for /src/temp/componentFactory.ts
+
+<span class="kw">DO NOT:</span> hardcode strings, use deprecated Sitecore patterns, access .value directly on fields.
+
+<span class="cm">## Output</span>
+All files to their specified paths.
+Log any implementation decisions as comments in the component file.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P02 + P10 (all Pass)</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P14: Salesforce LWC Gen -->
+      <div class="card" data-section="components" data-tags="Component Generation,Salesforce,LWC,Apex,xcm-component-gen">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Salesforce LWC + Apex Scaffold</div>
+            <div class="card-ver">P14 · v1.4</div>
+          </div>
+          <div class="card-desc">Generate a complete Salesforce LWC component with Apex controller and unit test class from a validated technical spec.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Development</span>
+            <span class="tag tag-skill">xcm-component-gen</span>
+            <span class="tag tag-plat">Salesforce</span>
+            <span class="tag tag-output">LWC + Apex</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P14 — Salesforce LWC + Apex Scaffold</span>
+<span class="sec">## Inputs</span>
+<span class="ph">TECH_SPEC</span>: /specs/technical/<span class="ph">COMPONENT_NAME</span>-salesforce-spec.md
+<span class="ph">L1_REPORT</span>: /validation/L1-<span class="ph">COMPONENT_NAME</span>-[date].md [must show all Pass]
+<span class="ph">CLIENT_ORG_SCHEMA</span>: [confirmed API names — no TBD items remaining]
+
+<span class="sec">## Task</span>
+Apply xcm-component-gen skill (Salesforce path).
+All [CONFIRM] API names in <span class="ph">TECH_SPEC</span> must be resolved before generating.
+
+Generate:
+
+<span class="var">1. LWC Files</span>
+   /force-app/main/default/lwc/<span class="ph">componentName</span>/
+   - [componentName].html — SLDS classes, semantic HTML, custom events (kebab-case)
+   - [componentName].js — @api props, @wire or imperative, no DOM manipulation
+   - [componentName].css — scoped styles only, beyond SLDS needs
+   - [componentName].js-meta.xml — targets, designerAttributes per <span class="ph">TECH_SPEC</span>
+
+<span class="var">2. Apex Controller</span>
+   (Only if SOQL/DML required per <span class="ph">TECH_SPEC</span>)
+   /force-app/main/default/classes/[ControllerName].cls
+   <span class="kw">Governor rules (enforced):</span>
+   - Zero SOQL inside for-loops.
+   - All DML in try/catch.
+   - WITH SECURITY_ENFORCED on all SOQL.
+   - @AuraEnabled(cacheable=true) where data is read-only.
+
+<span class="var">3. Apex Test Class</span>
+   [ControllerName]Test.cls
+   - @isTest with TestSetup
+   - Covers: happy path, error handling, bulk (200 records)
+   - Minimum 75% coverage target (spec for 90%+)
+
+<span class="var">4. Custom Metadata / Labels</span>
+   If any hardcoded strings needed: Custom Labels only. No hardcoded text in code.
+
+<span class="cm">## Output</span>
+All files to their specified paths.
+Flag any incomplete items as [TODO: description] for offshore resolution.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Requires: P03 + P10 (all Pass) + confirmed API names</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P15: Code Review -->
+      <div class="card" data-section="components" data-tags="Code Review,All Platforms,code-review">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Structured Code Review</div>
+            <div class="card-ver">P15 · v1.2</div>
+          </div>
+          <div class="card-desc">Run a structured, rubric-driven review on any PR or component before merge. Produces tiered findings written for async offshore review without follow-up conversation.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Development</span>
+            <span class="tag tag-skill">code-review</span>
+            <span class="tag tag-output">Review Report</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P15 — Structured Code Review</span>
+<span class="sec">## Inputs</span>
+<span class="ph">PR_DIFF</span>: [paste diff, or file path(s)]
+<span class="ph">TECH_SPEC</span>: /specs/technical/<span class="ph">COMPONENT_NAME</span>-[platform]-spec.md
+<span class="ph">PLATFORM_CONSTRAINTS</span>: /prompt-library/constraints/[platform].md
+<span class="ph">CURSOR_RULES</span>: .cursor/rules/platform.mdc
+
+<span class="sec">## Task</span>
+Apply the code-review skill. Review <span class="ph">PR_DIFF</span> against:
+- The intent in <span class="ph">TECH_SPEC</span>
+- Platform conventions in <span class="ph">PLATFORM_CONSTRAINTS</span>
+- Coding standards in <span class="ph">CURSOR_RULES</span>
+
+<span class="var">Review Dimensions</span>
+
+BLOCKERS (must fix before merge)
+- Correctness: Does it do what the spec says?
+- Platform errors: Deprecated patterns, invalid field types, governor violations
+- Security: SQL injection, XSS, FLS bypass, exposed credentials
+- TypeScript: Implicit any, unsafe casts, missing null checks
+- Tests: Missing required coverage, untested error paths
+
+WARNINGS (should fix this sprint)
+- Accessibility: Missing ARIA, keyboard traps, contrast issues
+- Performance: Unnecessary re-renders, missing memoization, blocking queries
+- Design system: Hardcoded values where tokens should be used
+
+SUGGESTIONS (next sprint / improvements)
+- Code organization, naming clarity, reusability opportunities
+
+<span class="var">Format per finding</span>
+TIER | FILE:LINE | FINDING | WHY IT MATTERS | SPECIFIC FIX
+
+<span class="kw">Write for an offshore developer who needs unambiguous guidance.</span>
+No vague feedback. Every finding must include a specific correction.
+
+<span class="cm">## Output</span>
+Structured review with summary:
+- X Blockers | X Warnings | X Suggestions
+- Merge recommendation: ✗ Block | ⚠ Merge with fixes | ✓ Approve</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run before merging any offshore PR</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ HANDOFF & CONTEXT ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Handoff &amp; Context Packages</div>
+          <span class="phase-badge tag tag-cond">Offshore delivery</span>
+        </div>
+      </div>
+
+      <!-- P16: Context Package -->
+      <div class="card" data-section="handoff" data-tags="Context Package,Offshore Handoff,xcm-context-package">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Offshore Context Package Assembler</div>
+            <div class="card-ver">P16 · v2.1</div>
+          </div>
+          <div class="card-desc">Assemble a complete offshore handoff package from all generated artifacts. Produces a single package the offshore team can work from without asking clarifying questions.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Handoff</span>
+            <span class="tag tag-skill">xcm-context-package</span>
+            <span class="tag tag-output">Context Package</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P16 — Offshore Context Package Assembler</span>
+<span class="sec">## Inputs</span>
+<span class="ph">SPRINT_NUMBER</span>: [Sprint N]
+<span class="ph">COMPONENTS</span>: [list of component names in this sprint]
+<span class="ph">PLATFORM</span>: [Sitecore / Salesforce / Shopify / etc.]
+<span class="ph">OFFSHORE_TEAM</span>: [team name / location / working hours if known]
+
+For each component in <span class="ph">COMPONENTS</span>:
+- /specs/functional/[component]-functional-spec.md
+- /specs/technical/[component]-[platform]-spec.md
+- /stories/[component]-stories.md
+- /qa/[component]-qa-package.md
+- /validation/L1-[component]-*.md [all Passing]
+
+<span class="sec">## Task</span>
+Apply xcm-context-package skill. Assemble a complete sprint handoff package.
+
+<span class="var">Package README</span>
+Generated at: /handoff/sprint-<span class="ph">SPRINT_NUMBER</span>/README.md
+Contents:
+- Sprint goal and context (one paragraph)
+- Platform: <span class="ph">PLATFORM</span> — relevant environment URLs, credentials location
+- Component list with brief description and priority order
+- File map: what each artifact is and how they relate
+- Build order recommendation
+- Known dependencies between components
+- Design gaps requiring offshore decision: list explicitly
+- "Do not do" list: common mistakes for this platform/client
+
+<span class="var">Per-Component Briefing Card</span>
+One card per component — a 1-page summary:
+- What it is + business purpose
+- Key technical decisions (and WHY)
+- Fields that need CMS data setup before testing
+- Acceptance criteria summary (top 5 most important ACs)
+- Where to find complete spec, stories, QA
+
+<span class="var">Pre-Handoff Checklist</span>
+- [ ] All L1 validation reports show Pass
+- [ ] All [CONFIRM] items in specs have been resolved
+- [ ] [DESIGN GAP] items have been flagged to design
+- [ ] Environment access confirmed for offshore team
+- [ ] Jira stories created and in sprint backlog
+
+<span class="cm">## Output</span>
+/handoff/sprint-<span class="ph">SPRINT_NUMBER</span>/
+  README.md
+  [component]-briefing.md (one per component)
+  pre-handoff-checklist.md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run after all L1 validation passes · Before sprint start</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P17: Loom Script -->
+      <div class="card" data-section="handoff" data-tags="Loom Script,Offshore Handoff,Communication,xcm-context-package">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Loom Recording Script Generator</div>
+            <div class="card-ver">P17 · v1.3</div>
+          </div>
+          <div class="card-desc">Generate a structured script for Loom walkthroughs of sprint handoffs. Covers context, component demos, and Q&A prep. Reduces offshore clarification messages by 60%.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Handoff</span>
+            <span class="tag tag-skill">xcm-context-package</span>
+            <span class="tag tag-output">Loom Script</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P17 — Loom Recording Script Generator</span>
+<span class="sec">## Inputs</span>
+<span class="ph">CONTEXT_PACKAGE</span>: /handoff/sprint-<span class="ph">SPRINT_NUMBER</span>/README.md
+<span class="ph">COMPONENTS</span>: [list of components, in build order]
+<span class="ph">KNOWN_COMPLEXITIES</span>: [any components or decisions that need verbal explanation]
+<span class="ph">TARGET_DURATION</span>: [target: 8–12 minutes recommended]
+
+<span class="sec">## Task</span>
+Generate a Loom recording script structured for an offshore technical handoff.
+Tone: direct, friendly, precise. Not a lecture — a briefing.
+Target: <span class="ph">TARGET_DURATION</span> recording.
+
+<span class="var">Script Structure</span>
+
+INTRO (60 seconds)
+"Hi [team name], I'm [name]. This is Sprint <span class="ph">SPRINT_NUMBER</span> context.
+[Sprint goal in one sentence]. Today I'm walking through [N] components."
+
+CONTEXT (90 seconds)
+[Platform name] deployment. Key environment facts.
+Link to README: [path]. Link to Jira board: [URL].
+Anything that changed from last sprint.
+
+COMPONENT WALKTHROUGH (2 min per component)
+For each component in <span class="ph">COMPONENTS</span>:
+1. What it is (user-facing purpose, 1 sentence)
+2. Show Figma frame — point to any tricky areas
+3. Key technical decision from the spec — and WHY
+4. Top 3 acceptance criteria they must get right
+5. Common mistake to avoid on this platform
+
+KNOWN COMPLEXITIES (for each in <span class="ph">KNOWN_COMPLEXITIES</span>):
+Extended section — 3–4 minutes — with full explanation.
+
+CLOSE (30 seconds)
+"Questions → Slack [channel]. Blockers → Jira comment, tag me.
+Good luck — excited to see this built."
+
+<span class="var">Annotations</span>
+[SCREEN: show X] — what to have visible on screen
+[PAUSE] — natural pause moments
+[EMPHASIS] — what to say slowly/clearly
+
+<span class="cm">## Output</span>
+Save to: /handoff/sprint-<span class="ph">SPRINT_NUMBER</span>/loom-script.md</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Record within 24h of package delivery</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P18: Design System Constraint Block -->
+      <div class="card" data-section="handoff" data-tags="Design System,Constraint Block,Tokens,design-language">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Design System Constraint Block Generator</div>
+            <div class="card-ver">P18 · v1.1</div>
+          </div>
+          <div class="card-desc">Extract a reusable constraint block from a client design system or Figma token set. Injected into spec prompts to ensure all generated specs are design-system-aware.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Spec &amp; Generation</span>
+            <span class="tag tag-skill">design-language</span>
+            <span class="tag tag-output">Constraint Block</span>
+            <span class="tag tag-cond">When design system exists</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P18 — Design System Constraint Block Generator</span>
+<span class="sec">## Inputs</span>
+<span class="ph">DS_SOURCE</span>: [Figma library URL / Storybook URL / Token JSON file / or describe the design system]
+<span class="ph">DS_NAME</span>: [e.g. "AcmeCorp Design System v2.1"]
+<span class="ph">PLATFORM</span>: [Sitecore / Salesforce / Shopify — for platform-specific token mapping]
+
+<span class="sec">## Task</span>
+Extract and document the design system constraints for injection into spec prompts.
+
+<span class="var">1. Token Inventory</span>
+   Color tokens: semantic naming convention + actual values
+   Typography scale: font sizes, weights, line-heights, and their semantic names
+   Spacing scale: rem/px values and semantic names (sm, md, lg, etc.)
+   Border radius: values and when each is used
+   Shadow/elevation: levels and usage rules
+
+<span class="var">2. Component Inventory</span>
+   List available components with exact names as used in the DS.
+   Note: component vs. variant names.
+   Flag any components that supersede common HTML elements.
+
+<span class="var">3. Usage Rules</span>
+   What must always come from the DS (never recreate).
+   What can be custom with DS tokens.
+   Anti-patterns specific to this DS.
+
+<span class="var">4. Platform Mapping</span>
+   For <span class="ph">PLATFORM</span>:
+   - How tokens translate to platform implementation
+     (e.g. Sitecore: tailwind.config.ts tokens, Salesforce: SLDS overrides, Shopify: CSS custom properties)
+
+<span class="var">Output Format</span>
+Markdown constraint block ready for injection:
+## Design System: <span class="ph">DS_NAME</span>
+[structured rules a prompt can directly apply]
+
+<span class="cm">## Output</span>
+Save to: /prompt-library/constraints/design-tokens-<span class="ph">DS_NAME</span>.md
+Reference this file in P01, P02, P03 prompts under PLATFORM_CONSTRAINTS.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run once per engagement · Update when DS changes</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ PROMPT MAINTENANCE ══════ -->
+      <div class="section-divider">
+        <div class="div-line">
+          <div class="div-title">Prompt Maintenance</div>
+          <span class="phase-badge tag tag-output">Feedback loop · S14</span>
+        </div>
+      </div>
+
+      <!-- P19: Prompt Diagnosis -->
+      <div class="card" data-section="maintenance" data-tags="Prompt Diagnosis,Root Cause,prompt-iteration">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Prompt Diagnosis &amp; Root Cause Analysis</div>
+            <div class="card-ver">P19 · v1.5</div>
+          </div>
+          <div class="card-desc">When Claude output has issues, diagnose WHY and fix the template — not just the artifact. Classifies root cause into 5 categories and outputs a template patch.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Maintenance</span>
+            <span class="tag tag-skill">prompt-iteration</span>
+            <span class="tag tag-output">Template Patch</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P19 — Prompt Diagnosis &amp; Root Cause Analysis</span>
+<span class="sec">## Inputs</span>
+<span class="ph">ARTIFACT</span>: [path to the problematic artifact]
+<span class="ph">PROMPT_USED</span>: [which prompt template produced it — e.g. "P01 v2.1"]
+<span class="ph">FIGMA_URL</span>: [if applicable]
+<span class="ph">ISSUES</span>: [describe or paste the validation findings / what went wrong]
+
+<span class="sec">## Task</span>
+Apply the prompt-iteration skill. Do not fix the artifact — fix the template.
+
+<span class="var">Step 1: Classify root cause for each issue</span>
+
+Root cause categories:
+A. Missing Context — Claude didn't know something it needed to know
+B. Wrong Assumption — Claude made a reasonable but wrong default
+C. Format Mismatch — Output structure doesn't match downstream expectations
+D. Platform Error — Valid in general, wrong for this specific platform
+E. Hallucination — Claude generated something not in the design
+
+For each issue in <span class="ph">ISSUES</span>:
+- Root cause category (A–E)
+- Why: what specifically caused the error?
+- Template fix: exact text to add/modify/remove from <span class="ph">PROMPT_USED</span>
+- Where in the template to place it (section name)
+- Negative example if applicable: "DO NOT [specific thing]"
+
+<span class="var">Step 2: Draft the template patch</span>
+Show the before/after for each changed section of <span class="ph">PROMPT_USED</span>.
+Keep additions minimal — fix the specific gap, don't bloat the template.
+
+<span class="var">Step 3: Determine scope</span>
+Is this fix specific to this project? → Add to project constraint block.
+Is this fix applicable across all projects? → Add to base template.
+Is this a platform-specific rule? → Add to platform constraint block.
+
+<span class="cm">## Output</span>
+Save diagnosis: /prompt-library/diagnostics/[date]-[component].md
+Save updated template: /prompt-library/templates/<span class="ph">PROMPT_USED</span>-patched.md
+Add CHANGELOG entry with trigger and fix summary.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run after any L1/L2/L3 failure · Offshore feedback</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P20: Constraint Block Update -->
+      <div class="card" data-section="maintenance" data-tags="Constraint Block,Platform Rules,prompt-iteration">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Constraint Block Updater</div>
+            <div class="card-ver">P20 · v1.2</div>
+          </div>
+          <div class="card-desc">Add a newly discovered platform rule, gotcha, or learned lesson to the shared constraint block. Ensures the correction applies to all future prompts, not just the current one.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Maintenance</span>
+            <span class="tag tag-skill">prompt-iteration</span>
+            <span class="tag tag-output">Constraint Block</span>
+            <span class="tag tag-cond">After any platform error discovered</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P20 — Constraint Block Updater</span>
+<span class="sec">## Inputs</span>
+<span class="ph">CONSTRAINT_FILE</span>: /prompt-library/constraints/[platform].md
+<span class="ph">NEW_RULE</span>: [describe the rule, gotcha, or learned lesson]
+<span class="ph">TRIGGER_INCIDENT</span>: [what caused this — e.g. "Offshore team used deprecated Memo field type"]
+<span class="ph">SCOPE</span>: [All projects / This client only]
+
+<span class="sec">## Task</span>
+
+<span class="var">1. Read existing constraint block</span>
+   Check <span class="ph">CONSTRAINT_FILE</span> for:
+   - Does this rule already exist? (If yes: update it, don't duplicate)
+   - Is there a related rule that needs expanding?
+
+<span class="var">2. Format the new rule</span>
+   Category: [Valid Patterns / Invalid Patterns / Known Gotchas / Performance / Security]
+   Rule text (concise, imperative): "Never use X. Use Y instead."
+   Context: One sentence explaining why.
+   Example if needed: show the wrong and right pattern.
+
+<span class="var">3. Placement</span>
+   If scope is "All projects" → update /prompt-library/constraints/<span class="ph">CONSTRAINT_FILE</span>
+   If scope is "This client only" → update /prompt-library/constraints/project-specific/[client].md
+
+<span class="var">4. Impact check</span>
+   Which prompt templates reference <span class="ph">CONSTRAINT_FILE</span>?
+   Do any need immediate re-run with the updated constraint?
+
+<span class="cm">## Output</span>
+Updated constraint block with new rule highlighted.
+List of affected prompt templates.
+CHANGELOG entry: rule added, trigger incident, date.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run after any platform error discovered in validation or dev</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P21: Sprint Retrospective -->
+      <div class="card" data-section="maintenance" data-tags="Sprint Retro,Metrics,Health Check,prompt-iteration">
+        <div class="card-head" onclick="toggleCard(this)">
+          <div class="card-head-top">
+            <div class="card-title">Sprint Workflow Health Check</div>
+            <div class="card-ver">P21 · v1.4</div>
+          </div>
+          <div class="card-desc">End-of-sprint retrospective that reviews all diagnostics, offshore feedback, and metrics. Closes the feedback loop and identifies which templates to improve next sprint.</div>
+          <div class="card-tags">
+            <span class="tag tag-phase">Maintenance</span>
+            <span class="tag tag-skill">prompt-iteration</span>
+            <span class="tag tag-output">Sprint Health Report</span>
+            <span class="tag tag-plat">All Platforms</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="prompt-area">
+            <div class="prompt-text"><span class="cm"># Prompt P21 — Sprint Workflow Health Check</span>
+<span class="sec">## Inputs</span>
+<span class="ph">SPRINT_NUMBER</span>: [Sprint N]
+<span class="ph">DIAGNOSTICS_DIR</span>: /prompt-library/diagnostics/ [files created this sprint]
+<span class="ph">VALIDATION_REPORTS</span>: /validation/ [L1/L2/L3 reports from this sprint]
+<span class="ph">OFFSHORE_SIGNALS</span>: [paste Slack questions, Jira bounce-backs, PR comments from offshore]
+<span class="ph">PREV_METRICS</span>: /metrics/weekly/[prev-date]-metrics.md [for comparison]
+
+<span class="sec">## Task</span>
+Apply the prompt-iteration skill (Sprint Retrospective mode).
+
+<span class="var">1. Issue Inventory</span>
+   Total diagnostics: N
+   Root cause breakdown: Missing Context / Wrong Assumption / Format / Platform / Hallucination
+   Validation first-pass rate: % of specs that passed L1 with no Fail items
+   Compare to previous sprint.
+
+<span class="var">2. Offshore Feedback Analysis</span>
+   Categorize all <span class="ph">OFFSHORE_SIGNALS</span>:
+   - Spec gap: spec didn't answer a build question
+   - Context gap: context package was missing info
+   - Ambiguity: correct but interpretable two ways
+   - Tool gap: needed something the workflow doesn't produce
+
+   Count per category. Identify top 3 most common questions.
+
+<span class="var">3. Template Performance</span>
+   Which templates were patched this sprint?
+   Which templates produced the most issues?
+   Are any templates due for a full redesign (3+ patches in 2 sprints)?
+
+<span class="var">4. Recommended Actions for Next Sprint</span>
+   Priority 1: Blockers — issues causing Jira bounces or offshore blocks
+   Priority 2: Patterns — same error appearing 2+ times
+   Priority 3: Improvements — quality enhancements
+
+<span class="var">5. Metrics Table</span>
+   | Metric | Sprint N-1 | Sprint N | Target |
+   Spec creation time, L1 pass rate, rework cycles,
+   offshore questions, template updates.
+
+<span class="cm">## Output</span>
+Save to: /prompt-library/retrospectives/sprint-<span class="ph">SPRINT_NUMBER</span>-health.md
+Save metrics: /metrics/weekly/[date]-metrics.md
+Update team metrics dashboard.</div>
+          </div>
+          <div class="card-foot">
+            <span class="foot-meta">Run at end of every sprint · 30-min investment</span>
+            <button class="copy-btn" onclick="copyPrompt(this)">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards-grid -->
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state" class="empty" style="display:none;">
+      <div class="empty-title">No prompts match your search</div>
+      <div class="empty-desc">Try different keywords or clear the search</div>
+    </div>
+
+  </div><!-- /section-all -->
+
+
+  <!-- ─── SECTION: CONSTRAINTS ─── -->
+  <div id="section-constraints" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Constraint Blocks</div>
+      <div class="section-desc">Reusable rule sets injected into prompt templates. Update these blocks to improve every prompt that references them.</div>
+    </div>
+
+    <div class="constraint-block">
+      <div class="cb-head" onclick="toggleCB(this)">
+        <div class="cb-icon" style="background:var(--pink-bg);color:var(--pink-text);">S</div>
+        <div><div class="cb-title">Sitecore XM Cloud</div><div class="cb-sub">sitecore-xm-cloud.md · Referenced by P02, P10, P13, P15</div></div>
+      </div>
+      <div class="cb-body">
+        <div class="prompt-text" style="margin:0;border-radius:0;">## Sitecore XM Cloud Constraints
+
+### Valid Field Types
+Single-Line Text, Multi-Line Text, Rich Text, Image, File, General Link,
+Droptree, Droplink, Multilist, Treelist, Checkbox, Date, Datetime, Number,
+Integer, Name Value List.
+
+DO NOT USE: Memo, Html, Custom (legacy types — not available in XM Cloud).
+
+### Component Conventions
+- PascalCase component names only.
+- Next.js App Router (not Pages Router) — no pages/ directory patterns.
+- Always use JSS field helpers: Text, Image, RichText, Link, File.
+  Never access field.value directly — breaks Experience Editor compatibility.
+- Rendering parameters: string types only in the data template. Parse in component.
+- useSitecoreContext() hook in functional components.
+  withSitecoreContext HOC in class components (rare/legacy).
+
+### Template Paths
+Standard: /sitecore/templates/Project/{ProjectName}/Components/{ComponentName}
+Shared base: /sitecore/templates/Foundation/{Area}/BaseComponent
+
+### Known Gotchas (Learned)
+- Rich Text fields: strip custom CSS classes by default unless whitelisted.
+- General Link fields: do NOT support anchor links (#section) natively.
+- Multilist fields: 100-item soft limit — add note in spec if list could exceed this.
+- SCS YAML: IDs must be valid GUIDs (braces format: {00000000-0000-0000-0000-000000000000}).
+- ComponentFactory: new components MUST be registered or they will 404 in production.
+
+### Caching Rules
+- Pages: cacheable by default.
+- Components with personalization: vary-by=data, vary-by=login.
+- Components with user-specific data: not cacheable.</div>
+      </div>
+    </div>
+
+    <div class="constraint-block">
+      <div class="cb-head" onclick="toggleCB(this)">
+        <div class="cb-icon" style="background:var(--blue-bg);color:var(--blue-text);">SF</div>
+        <div><div class="cb-title">Salesforce Conventions</div><div class="cb-sub">salesforce-conventions.md · Referenced by P03, P10, P14, P15</div></div>
+      </div>
+      <div class="cb-body">
+        <div class="prompt-text" style="margin:0;border-radius:0;">## Salesforce Conventions
+
+### Governor Limit Rules (Hard Limits)
+- ZERO SOQL queries inside for-loops — ever. This is a blocker in every code review.
+- All DML operations inside try/catch with meaningful error messages.
+- @AuraEnabled(cacheable=true) for all read-only Apex methods.
+- WITH SECURITY_ENFORCED on all SOQL for FLS enforcement.
+- Maximum 100 DML statements per transaction — design for bulk.
+
+### LWC Conventions
+- One component per folder: .html / .js / .css / .js-meta.xml
+- Custom events: kebab-case names (e.g. fire-custom-event, not fireCustomEvent).
+- @track no longer needed for object/array reactivity (since API v39) — remove it.
+- No direct DOM manipulation — use reactive properties and @track.
+- Use @wire before writing imperative Apex. Prefer standard adapters.
+
+### Apex Conventions
+- PascalCase class names. camelCase methods.
+- Every class has a paired [ClassName]Test.cls with @isTest annotation.
+- @TestSetup for shared test data.
+- Test coverage minimum: 75% (required), target 90%+.
+- No hardcoded IDs, record types, or strings. Use Custom Metadata or Custom Labels.
+
+### Experience Cloud
+- Guest user access: explicitly configure OWD + sharing rules. Never assume.
+- Property editor: use designerAttributes in .js-meta.xml for admin config.
+- Page types: Home, Record Detail, Login, Error — specify per component.
+
+### Known Gotchas (Learned)
+- wire adapter getRecord: specify every field explicitly — no wildcards.
+- Custom events don't bubble by default. Add {bubbles: true} if crossing shadow DOM.
+- Test class DML limit: use Test.startTest() / stopTest() to reset governor limits.
+- @api properties: setting from parent re-renders child — avoid setting in connectedCallback.</div>
+      </div>
+    </div>
+
+    <div class="constraint-block">
+      <div class="cb-head" onclick="toggleCB(this)">
+        <div class="cb-icon" style="background:var(--teal-bg);color:var(--teal-text);">A11Y</div>
+        <div><div class="cb-title">Accessibility Rules (WCAG 2.1 AA)</div><div class="cb-sub">accessibility-rules.md · Referenced by P01, P07, P10, P11</div></div>
+      </div>
+      <div class="cb-body">
+        <div class="prompt-text" style="margin:0;border-radius:0;">## Accessibility Requirements — WCAG 2.1 AA
+
+### Always Include in Specs
+- Heading hierarchy: h1 unique per page. h2–h6 in order, no skipping.
+- Interactive elements: describe tab order explicitly.
+- Screen reader: describe what gets announced, in what order.
+- Color contrast: minimum 4.5:1 for body text, 3:1 for large text (18px+ or 14px+ bold).
+
+### ARIA Rules
+- Don't use ARIA if native HTML semantics cover it (e.g. <button> not <div role="button">).
+- aria-label on icon-only buttons: describe the action, not the icon.
+- aria-describedby for error messages: link input to its error message.
+- aria-live="polite" for dynamic content updates (search results, notifications).
+- role="region" or landmark roles for all page sections.
+
+### Keyboard Navigation
+- Focus ring: never remove. Never use outline: none without providing a replacement.
+- Tab order: follows reading order. Modals trap focus. Drawers return focus on close.
+- Keyboard shortcuts: document any custom keyboard shortcuts in the spec.
+
+### Images
+- Decorative images: alt="" (empty alt, not "decorative").
+- Informational images: alt describes the meaning, not appearance.
+- Images of text: avoid. If used, alt must match exact text.
+
+### Forms
+- Every input has an associated <label> (not just placeholder).
+- Error messages: identify the field, explain the error, suggest a fix.
+- Required fields: marked programmatically (aria-required), not just visually.
+
+### Components to Flag for Accessibility Review
+- Carousels, accordions, modals, tooltips, custom selects, date pickers.
+  These have complex keyboard patterns — document them explicitly in the spec.</div>
+      </div>
+    </div>
+
+    <div class="constraint-block">
+      <div class="cb-head" onclick="toggleCB(this)">
+        <div class="cb-icon" style="background:var(--amber-bg);color:var(--amber-text);">⚠</div>
+        <div><div class="cb-title">Common Errors Negative Library</div><div class="cb-sub">common-errors.md · Referenced across all spec prompts as negative examples</div></div>
+      </div>
+      <div class="cb-body">
+        <div class="prompt-text" style="margin:0;border-radius:0;">## Common Errors — Learned Negative Examples
+
+### Spec Generation Errors
+- DO NOT add fields to a spec that aren't visible in the Figma design.
+  (Common: "Sort by" dropdown, "Save for later", "Compare" buttons not in design)
+- DO NOT write "responsive" without specifying what changes at each breakpoint.
+- DO NOT document only the happy path. Always include error, empty, and loading states.
+- DO NOT assume interactions Figma doesn't show. Flag as [DESIGN GAP] instead.
+- DO NOT use platform field types from memory — verify against constraint block every time.
+
+### Sitecore-Specific Errors
+- DO NOT use the Memo field type (not available in XM Cloud).
+- DO NOT access field.value directly (breaks Experience Editor).
+- DO NOT generate YAML with duplicate GUIDs.
+- DO NOT skip registering the component in componentFactory.
+
+### Salesforce-Specific Errors
+- DO NOT write SOQL inside for-loops — ever.
+- DO NOT invent object or field API names. Mark as [CONFIRM] and stop.
+- DO NOT create an Apex class without a paired test class.
+- DO NOT use @track for primitive reactive properties (deprecated pattern).
+
+### User Stories Errors
+- DO NOT write acceptance criteria without specifying the breakpoint.
+  Wrong: "When I click the button, the modal opens."
+  Right: "Given I am on desktop, when I click the button, the modal opens."
+- DO NOT write implementation details in AC. Behavior only.
+- DO NOT omit the error and empty state stories — offshore needs them.
+
+### Handoff Errors
+- DO NOT hand off a spec with unresolved [CONFIRM] items.
+- DO NOT hand off without running L1 validation first.
+- DO NOT assume offshore has environment access — confirm explicitly.</div>
+      </div>
+    </div>
+
+  </div><!-- /section-constraints -->
+
+
+  <!-- ─── SECTION: STRUCTURE ─── -->
+  <div id="section-structure" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Library Structure</div>
+      <div class="section-desc">Folder structure for the prompt library. Git-commit this alongside your project files — the library is code.</div>
+    </div>
+
+    <div class="tree">
+<span class="dir">/prompt-library/</span>                         <span class="cmt">← git-committed, shared with team</span>
+│
+├── <span class="dir">/templates/</span>                             <span class="cmt">← versioned prompt templates</span>
+│   ├── <span class="hot">P01-functional-spec-v2.1.md</span>
+│   ├── <span class="hot">P02-sitecore-tech-spec-v2.3.md</span>
+│   ├── <span class="file">P03-salesforce-tech-spec-v2.1.md</span>
+│   ├── <span class="file">P04-shopify-spec-v1.2.md</span>
+│   ├── <span class="file">P05-optimizely-spec-v1.1.md</span>
+│   ├── <span class="file">P06-headless-spec-v1.0.md</span>
+│   ├── <span class="hot">P07-user-stories-v3.2.md</span>
+│   ├── <span class="hot">P08-qa-narratives-v2.4.md</span>
+│   ├── <span class="file">P09-responsive-ac-v1.3.md</span>
+│   ├── <span class="hot">P10-l1-validation-v1.4.md</span>
+│   ├── <span class="file">P11-l2-validation-v1.3.md</span>
+│   ├── <span class="file">P12-l3-validation-v1.2.md</span>
+│   ├── <span class="file">P13-sitecore-component-v2.0.md</span>
+│   ├── <span class="file">P14-salesforce-lwc-v1.4.md</span>
+│   ├── <span class="file">P15-code-review-v1.2.md</span>
+│   ├── <span class="file">P16-context-package-v2.1.md</span>
+│   ├── <span class="file">P17-loom-script-v1.3.md</span>
+│   ├── <span class="file">P18-ds-constraint-v1.1.md</span>
+│   ├── <span class="hot">P19-prompt-diagnosis-v1.5.md</span>
+│   ├── <span class="file">P20-constraint-updater-v1.2.md</span>
+│   └── <span class="hot">P21-sprint-retro-v1.4.md</span>
+│
+├── <span class="dir">/constraints/</span>                           <span class="cmt">← platform + project rules</span>
+│   ├── <span class="hot">sitecore-xm-cloud.md</span>
+│   ├── <span class="hot">salesforce-conventions.md</span>
+│   ├── <span class="file">shopify-conventions.md</span>
+│   ├── <span class="file">optimizely-conventions.md</span>
+│   ├── <span class="file">accessibility-rules.md</span>
+│   ├── <span class="file">common-errors.md</span>
+│   └── <span class="dir">/project-specific/</span>
+│       ├── <span class="file">[client-a]-overrides.md</span>
+│       └── <span class="file">[client-b]-overrides.md</span>
+│
+├── <span class="dir">/diagnostics/</span>                            <span class="cmt">← append-only issue log</span>
+│   ├── <span class="file">2026-03-15-hero-banner.md</span>
+│   └── <span class="file">2026-03-20-product-card.md</span>
+│
+├── <span class="dir">/retrospectives/</span>                         <span class="cmt">← sprint health reports</span>
+│   ├── <span class="file">sprint-01-health.md</span>
+│   └── <span class="file">sprint-02-health.md</span>
+│
+├── <span class="dir">/metrics/</span>
+│   └── <span class="dir">/weekly/</span>
+│       └── <span class="file">2026-03-20-metrics.md</span>
+│
+└── <span class="hot">CHANGELOG.md</span>                             <span class="cmt">← what changed, when, why</span>
+</div>
+
+    <div style="margin-top:1.5rem;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem 1.25rem;">
+      <div style="font-size:12px;font-weight:500;margin-bottom:8px;color:var(--text);">CHANGELOG.md — Entry Format</div>
+      <div class="prompt-text" style="margin:0;border:none;background:var(--bg);border-radius:8px;">## [P01] functional-spec (v2.0 → v2.1) — 2026-03-19
+- Added: Check for mobile-specific interaction patterns (bottom sheets, drawers)
+  Trigger: Hero banner spec missed bottom sheet CTA pattern on mobile
+  Diagnosis: /diagnostics/2026-03-15-hero-banner.md
+
+## [P07] user-stories (v3.1 → v3.2) — 2026-03-18
+- Changed: All ACs now require explicit breakpoint in the Given clause
+  Before: "Given I click the CTA, Then the form opens"
+  After: "Given I am on [desktop/tablet/mobile] and I click the CTA, Then..."
+  Trigger: Offshore team was only testing desktop for responsive stories
+  Root cause: C — Format Mismatch</div>
+    </div>
+  </div><!-- /section-structure -->
+
+
+  <!-- ─── SECTION: METRICS ─── -->
+  <div id="section-metrics" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Metrics &amp; Success Targets</div>
+      <div class="section-desc">Track these weekly. The feedback loop compounds — each sprint the templates get smarter.</div>
+    </div>
+
+    <table class="metrics-table" style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;overflow:hidden;">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>How to Measure</th>
+          <th>Baseline</th>
+          <th>Sprint 3</th>
+          <th>Sprint 5+</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Spec creation time</td><td>Hours from Figma link → complete spec package</td><td>4 hrs</td><td class="target">90 min</td><td class="target">45 min</td></tr>
+        <tr><td>L1 first-pass rate</td><td>% of specs passing L1 with no Fail items</td><td>~40%</td><td class="target">80%</td><td class="target">90%</td></tr>
+        <tr><td>Rework cycles</td><td>Jira tickets bouncing back to In Progress</td><td>Baseline</td><td class="target">−30%</td><td class="target">−50%</td></tr>
+        <tr><td>Offshore questions</td><td>Slack clarification messages per sprint</td><td>15+</td><td class="target">8</td><td class="target">5</td></tr>
+        <tr><td>Time to first demo</td><td>Days from story start to demo-ready</td><td>Baseline</td><td class="target">−20%</td><td class="target">−35%</td></tr>
+        <tr><td>Template updates/sprint</td><td>Prompt improvements committed</td><td>0</td><td class="target">3–5</td><td class="target">1–3 (maturity)</td></tr>
+        <tr><td>3-layer pass rate</td><td>% passing all 3 validation layers first attempt</td><td>~25%</td><td class="target">60%</td><td class="target">75%</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:1.5rem;">
+      <div style="font-size:13px;font-weight:500;margin-bottom:1rem;color:var(--text);">Compounding Trajectory</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sprint 1</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">Baseline. Specs take 4 hrs. 15 offshore questions. 3 Jira bounces. Template library starts here.</div>
+        </div>
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sprint 2</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">Specs drop to 90 min. Validation catches 3 issues. Run 3 diagnostics, update 2 templates.</div>
+        </div>
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sprint 3</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">Updated templates produce cleaner specs. Offshore questions drop to 8. Library has 2 new constraint blocks.</div>
+        </div>
+        <div style="background:var(--surface);border:0.5px solid var(--teal-border);border-radius:10px;padding:1rem;">
+          <div style="font-size:10px;font-weight:500;color:var(--teal-text);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Sprint 5+</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;">Specs under 45 min. 80% pass L1 first attempt. 5 questions per sprint. Knowledge is in the prompts, not anyone's head.</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /section-metrics -->
+
+  <!-- ─── SECTION: DESIGN DISCOVERY ─── -->
+  <div id="section-design-discovery" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Discovery &amp; Research</div>
+      <div class="section-desc">Prompts for the design team during Discovery — synthesizing research, auditing competitors, and arriving at Figma with a clear brief and direction.</div>
+    </div>
+    <div class="cards-grid">
+      <div id="dd-placeholder"></div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION: DESIGN FIGMA ─── -->
+  <div id="section-design-figma" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Figma &amp; Design System</div>
+      <div class="section-desc">Prompts for working inside Figma — documenting components, auditing design system coverage, and specifying interactions for developer handoff.</div>
+    </div>
+    <div class="cards-grid">
+      <div id="df-placeholder"></div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION: DESIGN PROTO ─── -->
+  <div id="section-design-proto" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">Prototyping &amp; Concepting</div>
+      <div class="section-desc">Prompts for rapid ideation using Claude Code and Cursor — generating HTML prototypes, exploring layout variations, and running pre-handoff design critiques.</div>
+    </div>
+    <div class="cards-grid">
+      <div id="dp-placeholder"></div>
+    </div>
+  </div>
+
+</main>
+</div><!-- /layout -->
+
+<script>
+const allSections = ['all','design-discovery','design-figma','design-proto','spec','stories','validation','components','handoff','maintenance','constraints','structure','metrics'];
+
+function showSection(name, el) {
+  allSections.forEach(s => {
+    const sec = document.getElementById('section-' + s);
+    if (sec) sec.style.display = 'none';
+  });
+  const target = document.getElementById('section-' + name);
+  if (target) target.style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  if (name === 'all') {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('hidden'));
+    updateVisibleCount();
+  }
+
+  // For design sub-sections, filter the all-cards grid instead
+  if (['design-discovery','design-figma','design-proto'].includes(name)) {
+    // Show section-all but filtered
+    allSections.forEach(s => {
+      const sec = document.getElementById('section-' + s);
+      if (sec) sec.style.display = 'none';
+    });
+    document.getElementById('section-all').style.display = 'block';
+    const cards = document.querySelectorAll('.card');
+    let visible = 0;
+    cards.forEach(c => {
+      if (c.dataset.section === name) { c.classList.remove('hidden'); visible++; }
+      else c.classList.add('hidden');
+    });
+    // Sync filter chips
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    const matchChip = document.querySelector('.filter-chip[onclick*="' + name + '"]');
+    if (matchChip) matchChip.classList.add('active');
+    updateVisibleCount();
+    document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+  }
+}
+
+function filterCards(el, section) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(c => {
+    if (section === 'all' || c.dataset.section === section) {
+      c.classList.remove('hidden');
+      visible++;
+    } else {
+      c.classList.add('hidden');
+    }
+  });
+  updateVisibleCount();
+  document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function filterByPlatform(platform, el) {
+  showSection('all', el);
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(c => {
+    const tags = c.dataset.tags || '';
+    if (tags.toLowerCase().includes(platform.toLowerCase())) {
+      c.classList.remove('hidden');
+      visible++;
+    } else {
+      c.classList.add('hidden');
+    }
+  });
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  updateVisibleCount();
+  document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function toggleCard(headEl) {
+  const body = headEl.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+}
+
+function toggleCB(headEl) {
+  const body = headEl.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function copyPrompt(btn) {
+  const promptText = btn.closest('.card').querySelector('.prompt-text').innerText;
+  navigator.clipboard.writeText(promptText).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5 L4.5 9 L10 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.2"/></svg> Copy';
+    }, 2000);
+  });
+}
+
+function updateVisibleCount() {
+  const visible = document.querySelectorAll('.card:not(.hidden)').length;
+  document.getElementById('visible-count').textContent = visible;
+}
+
+// Search
+document.getElementById('search-input').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.filter-chip').classList.add('active');
+
+  cards.forEach(c => {
+    if (!q) {
+      c.classList.remove('hidden');
+      visible++;
+      return;
+    }
+    const text = (c.querySelector('.card-title').innerText + ' ' +
+                  c.querySelector('.card-desc').innerText + ' ' +
+                  (c.dataset.tags || '')).toLowerCase();
+    if (text.includes(q)) {
+      c.classList.remove('hidden');
+      visible++;
+    } else {
+      c.classList.add('hidden');
+    }
+  });
+
+  updateVisibleCount();
+  document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+  if (q) {
+    showSection('all', null);
+  }
+});
+
+// Count badges
+function updateCounts() {
+  const sections = ['spec','stories','validation','components','handoff','maintenance','design-discovery','design-figma','design-proto'];
+  sections.forEach(s => {
+    const count = document.querySelectorAll('.card[data-section="' + s + '"]').length;
+    const el = document.getElementById('count-' + s);
+    if (el) el.textContent = count;
+  });
+  document.getElementById('count-all').textContent = document.querySelectorAll('.card').length;
+}
+updateCounts();
+</script>
+
+</body>
+</html>
