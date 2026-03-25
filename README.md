@@ -58,4 +58,30 @@ Each phase maps to specific tools, AI agents, inputs, and outputs. See `xcm-ai-w
 
 This repo supports XCentium's AI delivery methodology — bridging onshore design intent with offshore development execution through structured specs, AI-generated artifacts, and validated handoff packages.
 
+## Contributing
+
+This repo is a living system — prompts get sharper, workflows evolve, and the toolchain changes. Here's how to contribute without breaking things for the team.
+
+### Adding or Updating Prompts
+- Edit `xcm-prompt-library.html` directly
+- Include the phase it belongs to (Discovery, Spec & Generation, etc.), the intended output, and any known constraints or failure modes
+- If a prompt replaces an existing one, keep the old version commented out with a note explaining what changed and why
+
+### Updating the Workflow Matrix
+- Changes to `xcm-ai-workflow-matrix.html` should reflect actual practice, not aspirational workflow
+- If a tool or agent role changes, update the matrix and note it in your PR description
+- Don't add a tool to the matrix until it's been validated in at least one sprint
+
+### Toolchain Setup Changes
+- If setup steps change (new MCP version, Node requirement, Cursor config), update `xcm_toolchain_setup.html` and flag it clearly — people follow this doc cold
+- Test your changes on both Mac and Windows (WSL2) if possible
+
+### Pull Request Guidelines
+- Branch from `main` using the format: `update/[what-you-changed]` (e.g. `update/prompt-library-spec-gen`)
+- PRs should include a one-line summary of what changed and why
+- Tag a reviewer from the onshore team before merging anything that affects the offshore handoff workflow
+
+### Questions or Issues
+Open an issue or ping the design systems channel. If something in the toolchain is broken or a prompt is consistently underperforming, that's worth a ticket — not just a Slack thread.
+
 > Cursor + Claude Code + Figma MCP · Sections 12–14 · March 2026
