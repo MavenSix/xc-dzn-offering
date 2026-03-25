@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XCentium AI Delivery Workflow</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a18; padding: 2rem; }
+  h1 { font-size: 16px; font-weight: 500; margin-bottom: 4px; color: #1a1a18; }
+  .subtitle { font-size: 12px; color: #888780; margin-bottom: 24px; }
+  .matrix { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .corner { border-right: 1px solid #e8e6de; border-bottom: 1px solid #e8e6de; width: 96px; background: #faf9f5; }
+  .phase-header { text-align: center; padding: 10px 6px 8px; border-bottom: 1px solid #e8e6de; border-right: 1px solid #e8e6de; background: #faf9f5; }
+  .phase-header:last-child { border-right: none; }
+  .phase-title { font-size: 12px; font-weight: 500; color: #1a1a18; display: block; }
+  .phase-sub { font-size: 10px; color: #888780; display: block; margin-top: 2px; }
+  .row-label { padding: 10px; width: 96px; min-width: 96px; border-right: 1px solid #e8e6de; border-bottom: 1px solid #e8e6de; vertical-align: middle; background: #faf9f5; }
+  .row-label-title { font-size: 11px; font-weight: 500; color: #1a1a18; }
+  .row-label-sub { font-size: 10px; color: #888780; margin-top: 2px; }
+  .row-label-badge { display:inline-block; font-size:8px; padding:1px 5px; border-radius:8px; margin-top:4px; font-weight:500; background:#FAEEDA; color:#633806; border:0.5px solid #EF9F27; }
+  .cell { border-right: 1px solid #e8e6de; border-bottom: 1px solid #e8e6de; padding: 8px 6px; vertical-align: top; text-align: center; }
+  .cell:last-child { border-right: none; }
+  .cell-inner { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; justify-content: center; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 500; white-space: nowrap; margin: 2px 1px; }
+  .chip-blue   { background:#E6F1FB; color:#0C447C; border:0.5px solid #85B7EB; }
+  .chip-purple { background:#EEEDFE; color:#3C3489; border:0.5px solid #AFA9EC; }
+  .chip-teal   { background:#E1F5EE; color:#085041; border:0.5px solid #5DCAA5; }
+  .chip-coral  { background:#FAECE7; color:#712B13; border:0.5px solid #F0997B; }
+  .chip-amber  { background:#FAEEDA; color:#633806; border:0.5px solid #EF9F27; }
+  .chip-gray   { background:#F1EFE8; color:#444441; border:0.5px solid #B4B2A9; }
+  .chip-pink   { background:#FBEAF0; color:#72243E; border:0.5px solid #ED93B1; }
+  .chip-green  { background:#EAF3DE; color:#27500A; border:0.5px solid #97C459; }
+  .output-chip { display:inline-block; padding:3px 7px; border-radius:4px; font-size:9px; color:#5f5e5a; border:0.5px dashed #b4b2a9; margin:2px 1px; }
+  .cond-chip { display:inline-block; padding:3px 7px; border-radius:4px; font-size:9px; color:#633806; background:#FAEEDA; border:0.5px dashed #EF9F27; margin:2px 1px; }
+  .fb-chip { display:inline-block; padding:3px 7px; border-radius:4px; font-size:9px; font-weight:500; color:#085041; background:#E1F5EE; border:0.5px solid #5DCAA5; margin:2px 1px; }
+  .empty { color:#888780; font-size:10px; }
+  .highlight-col { background: rgba(83,74,183,0.04); }
+  .feedback-row { background: rgba(29,158,117,0.04); }
+  .conditional-row { background: rgba(186,117,23,0.03); }
+  .micro { font-size:9px; color:#888780; margin-top:2px; }
+  .arrow-col { padding:0; width:20px; min-width:20px; border-bottom:1px solid #e8e6de; vertical-align:middle; }
+  .arrow-col.no-bottom { border-bottom:none; }
+  .arr-svg { display:block; margin:auto; }
+  .legend { display:flex; gap:14px; padding:14px 0 0; flex-wrap:wrap; align-items:center; }
+  .legend-item { font-size:10px; color:#888780; display:flex; align-items:center; gap:4px; }
+  .legend-swatch { display:inline-block; width:9px; height:9px; border-radius:2px; }
+</style>
+</head>
+<body>
+<h1>XCentium AI Delivery Workflow</h1>
+<p class="subtitle">Cursor + Claude Code + Figma MCP · Sections 12–14 · March 2026</p>
+
+<table class="matrix">
+  <thead>
+    <tr>
+      <th class="corner"></th>
+      <th class="phase-header" style="width:13%"><span class="phase-title">Discovery</span><span class="phase-sub">Research, strategy</span></th>
+      <th style="width:20px;border-bottom:1px solid #e8e6de;padding:0;background:#faf9f5;"></th>
+      <th class="phase-header" style="width:13%"><span class="phase-title">Design</span><span class="phase-sub">Figma, UI</span></th>
+      <th style="width:20px;border-bottom:1px solid #e8e6de;padding:0;background:#faf9f5;"></th>
+      <th class="phase-header" style="width:13%"><span class="phase-title">Prototyping</span><span class="phase-sub">Concepting</span></th>
+      <th style="width:20px;border-bottom:1px solid #e8e6de;padding:0;background:#faf9f5;"></th>
+      <th class="phase-header highlight-col" style="width:13%"><span class="phase-title">Spec &amp; Generation</span><span class="phase-sub">Specs, stories, QA</span></th>
+      <th style="width:20px;border-bottom:1px solid #e8e6de;padding:0;background:#faf9f5;"></th>
+      <th class="phase-header" style="width:13%"><span class="phase-title">Validation</span><span class="phase-sub">3-layer QA</span></th>
+      <th style="width:20px;border-bottom:1px solid #e8e6de;padding:0;background:#faf9f5;"></th>
+      <th class="phase-header" style="width:13%"><span class="phase-title">Development</span><span class="phase-sub">Build &amp; ship</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label"><div class="row-label-title">Tools</div></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-pink">UXR</span><span class="micro">Interviews, research</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-purple">✦ Figma</span><span class="micro">Figma Console MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-amber">⚡ Make</span><span class="chip chip-teal">⬡ Cursor</span><span class="micro">Figma MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col"><div class="cell-inner"><span class="chip chip-purple">✦ Figma</span><span class="chip chip-blue">Claude.ai</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-purple">✦ Figma</span><span class="chip chip-blue">Claude Code</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-teal">⬡ Cursor</span><span class="micro">Figma MCP</span></div></td>
+    </tr>
+    <tr>
+      <td class="row-label"><div class="row-label-title">AI Agents</div></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-pink">UXR</span><span class="micro">Synthesis, insights</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="empty">—</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-coral">Claude Code</span><span class="micro">Concepting</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col"><div class="cell-inner"><span class="chip chip-coral">Claude Code</span><span class="micro">Spec Generator</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-coral">Claude Code</span><span class="micro">Validator</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-coral">Claude Code</span><span class="micro">in Cursor</span></div></td>
+    </tr>
+    <tr>
+      <td class="row-label"><div class="row-label-title">MCPs</div><div class="row-label-sub">Integrations</div></td>
+      <td class="cell"><div class="cell-inner"><span class="empty">—</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-blue">Figma Console MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-blue">Figma MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col"><div class="cell-inner"><span class="chip chip-blue">Figma MCP</span><span class="chip chip-blue">Console MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-blue">Figma MCP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="48" viewBox="0 0 20 48"><line x1="2" y1="24" x2="13" y2="24" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 20 L15 24 L10 28" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="chip chip-blue">Figma MCP</span><span class="micro">Design ref in Cursor</span></div></td>
+    </tr>
+    <tr>
+      <td class="row-label"><div class="row-label-title">Skills / Rules</div><div class="row-label-sub">Prompt library</div></td>
+      <td class="cell"><div class="cell-inner"><span class="empty">—</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="52" viewBox="0 0 20 52"><line x1="2" y1="26" x2="13" y2="26" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 22 L15 26 L10 30" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="empty">—</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="52" viewBox="0 0 20 52"><line x1="2" y1="26" x2="13" y2="26" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 22 L15 26 L10 30" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">claude.md</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="52" viewBox="0 0 20 52"><line x1="2" y1="26" x2="13" y2="26" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 22 L15 26 L10 30" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col"><div class="cell-inner"><span class="output-chip">xcm-spec-generator</span><span class="output-chip">xcm-user-stories</span><span class="output-chip">qa-handoff</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="52" viewBox="0 0 20 52"><line x1="2" y1="26" x2="13" y2="26" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 22 L15 26 L10 30" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">xcm-validation</span><span class="output-chip">prompt-iteration</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="52" viewBox="0 0 20 52"><line x1="2" y1="26" x2="13" y2="26" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 22 L15 26 L10 30" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">xcm-component-gen</span><span class="output-chip">code-review</span><span class="chip chip-teal" style="font-size:9px;margin-top:3px">claude.md</span></div></td>
+    </tr>
+    <tr>
+      <td class="row-label"><div class="row-label-title">Outputs</div></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">Brief</span><span class="output-chip">Strategy</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="2" y1="28" x2="13" y2="28" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 24 L15 28 L10 32" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">Figma Design</span><span class="output-chip">Design Tokens</span><span class="output-chip">Components</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="2" y1="28" x2="13" y2="28" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 24 L15 28 L10 32" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">Prototype</span><span class="output-chip">Concept Code</span><span class="output-chip">Validated UX</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="2" y1="28" x2="13" y2="28" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 24 L15 28 L10 32" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col"><div class="cell-inner"><span class="output-chip">Functional Spec</span><span class="output-chip">Tech Spec</span><span class="output-chip">User Stories</span><span class="output-chip">QA Narratives</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="2" y1="28" x2="13" y2="28" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 24 L15 28 L10 32" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">L1 Spec Report</span><span class="output-chip">L2 Visual Report</span><span class="output-chip">L3 Exp. Report</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="2" y1="28" x2="13" y2="28" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 24 L15 28 L10 32" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell"><div class="cell-inner"><span class="output-chip">JSS Components</span><span class="output-chip">LWC / Apex</span><span class="output-chip">Tests</span><span class="output-chip">PR Ready</span></div></td>
+    </tr>
+    <tr><td colspan="12" style="padding:0;height:4px;border-bottom:1.5px dashed #d3d1c7;background:transparent;"></td></tr>
+    <tr class="conditional-row">
+      <td class="row-label"><div class="row-label-title">Design System</div><div class="row-label-sub">When applicable</div><span class="row-label-badge">conditional</span></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="empty">—</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="64" viewBox="0 0 20 64"><line x1="2" y1="32" x2="13" y2="32" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 28 L15 32 L10 36" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="chip chip-green">Design System / DSL</span><span class="cond-chip">Client DS</span><span class="cond-chip">Custom / Themed</span><span class="micro">Tokens → Figma</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="64" viewBox="0 0 20 64"><line x1="2" y1="32" x2="13" y2="32" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 28 L15 32 L10 36" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="chip chip-green">DS Components</span><span class="micro">Themed for prototype</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="64" viewBox="0 0 20 64"><line x1="2" y1="32" x2="13" y2="32" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 28 L15 32 L10 36" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col conditional-row"><div class="cell-inner"><span class="cond-chip">DS constraint block</span><span class="cond-chip">Token reference</span><span class="micro">Injected into spec prompts</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="64" viewBox="0 0 20 64"><line x1="2" y1="32" x2="13" y2="32" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 28 L15 32 L10 36" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">DS fidelity check</span><span class="micro">Token drift detected L2</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="64" viewBox="0 0 20 64"><line x1="2" y1="32" x2="13" y2="32" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 28 L15 32 L10 36" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="chip chip-green">DS installed</span><span class="cond-chip">Themed / extended</span><span class="micro">Cursor + claude.md aware</span></div></td>
+    </tr>
+    <tr class="conditional-row">
+      <td class="row-label" style="border-bottom:1px solid #e8e6de;"><div class="row-label-title">Platform</div><div class="row-label-sub">Client / vertical</div><span class="row-label-badge">conditional</span></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">Platform scoping</span><span class="micro">CMS · Commerce · CDP</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="80" viewBox="0 0 20 80"><line x1="2" y1="40" x2="13" y2="40" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 36 L15 40 L10 44" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">Platform UI patterns</span><span class="micro">Sitecore · Salesforce</span><span class="micro">Shopify · Optimizely…</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="80" viewBox="0 0 20 80"><line x1="2" y1="40" x2="13" y2="40" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 36 L15 40 L10 44" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">Platform constraints</span><span class="micro">Rendering model aware</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="80" viewBox="0 0 20 80"><line x1="2" y1="40" x2="13" y2="40" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 36 L15 40 L10 44" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell highlight-col conditional-row"><div class="cell-inner"><span class="cond-chip">Platform constraint block</span><span class="micro">sitecore-xm-cloud.md</span><span class="micro">salesforce-conventions.md</span><span class="micro">+ client-specific overrides</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="80" viewBox="0 0 20 80"><line x1="2" y1="40" x2="13" y2="40" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 36 L15 40 L10 44" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">Platform accuracy</span><span class="micro">L1: no deprecated patterns</span><span class="micro">L1: field types valid</span></div></td>
+      <td class="arrow-col"><svg class="arr-svg" width="20" height="80" viewBox="0 0 20 80"><line x1="2" y1="40" x2="13" y2="40" stroke="#b4b2a9" stroke-width="1.5"/><path d="M10 36 L15 40 L10 44" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell conditional-row"><div class="cell-inner"><span class="cond-chip">JSS / LWC / Headless</span><span class="micro">Sitecore · Salesforce</span><span class="micro">Shopify · Storyblok…</span></div></td>
+    </tr>
+    <tr>
+      <td class="row-label feedback-row" style="border-bottom:none;"><div class="row-label-title" style="color:#085041;">Feedback Loop</div><div class="row-label-sub">S14 · Sprint N+1</div></td>
+      <td class="cell feedback-row" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">↺ Next sprint</span><span class="micro">Updated templates</span></div></td>
+      <td class="arrow-col no-bottom feedback-row"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="18" y1="28" x2="7" y2="28" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24 L5 28 L10 32" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell feedback-row" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">Constraint blocks</span><span class="micro">Design patterns updated</span></div></td>
+      <td class="arrow-col no-bottom feedback-row"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="18" y1="28" x2="7" y2="28" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24 L5 28 L10 32" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell feedback-row" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">Negative examples</span><span class="micro">Learned errors logged</span></div></td>
+      <td class="arrow-col no-bottom feedback-row"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="18" y1="28" x2="7" y2="28" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24 L5 28 L10 32" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell feedback-row highlight-col" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">Template updates</span><span class="fb-chip">Prompt CHANGELOG</span><span class="micro">Diagnostics → /prompt-library</span></div></td>
+      <td class="arrow-col no-bottom feedback-row"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="18" y1="28" x2="7" y2="28" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24 L5 28 L10 32" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell feedback-row" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">Sprint retro</span><span class="fb-chip">Metrics dashboard</span><span class="micro">Root cause diagnosis</span></div></td>
+      <td class="arrow-col no-bottom feedback-row"><svg class="arr-svg" width="20" height="56" viewBox="0 0 20 56"><line x1="18" y1="28" x2="7" y2="28" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M10 24 L5 28 L10 32" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>
+      <td class="cell feedback-row" style="border-bottom:none;"><div class="cell-inner"><span class="fb-chip">Dev signals</span><span class="micro">Slack Qs · PR comments</span><span class="micro">Jira bounces → gaps</span></div></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-swatch" style="background:#FBEAF0;border:0.5px solid #ED93B1;"></span>UXR</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#EEEDFE;border:0.5px solid #AFA9EC;"></span>Figma</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#FAECE7;border:0.5px solid #F0997B;"></span>Claude Code</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#E1F5EE;border:0.5px solid #5DCAA5;"></span>Cursor</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#FAEEDA;border:0.5px solid #EF9F27;"></span>Make</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#E6F1FB;border:0.5px solid #85B7EB;"></span>MCP</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#EAF3DE;border:0.5px solid #97C459;"></span>Design System / DSL</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#FAEEDA;border:0.5px dashed #EF9F27;"></span>Conditional</span>
+  <span class="legend-item"><svg width="18" height="8" viewBox="0 0 18 8"><line x1="0" y1="4" x2="14" y2="4" stroke="#5DCAA5" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M11 1 L15 4 L11 7" fill="none" stroke="#5DCAA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="margin-left:4px;">Feedback loop (S14)</span></span>
+</div>
+</body>
+</html>
